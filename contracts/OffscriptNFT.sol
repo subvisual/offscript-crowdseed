@@ -14,15 +14,13 @@ contract offscriptNFT is ERC721URIStorage, Ownable {
   using Counters for Counters.Counter;
   Counters.Counter private _tokenIds;
 
+  enum Trait{ Arvore, Flora, Seed, CommunityPatron}
 
-  //NFT data
-  struct Data {
-        uint256 id;
-        address owner;
-        string uri;
-    }
 
-  mapping(address => bool) public alreadyMint;  
+
+  mapping(uint => Trait) public traits;
+
+
 
   // We need to pass the name of our NFTs token and its symbol.
   constructor(address _owner) ERC721 ("offscriptNFT", "OFFSCRIPT") {
@@ -33,9 +31,7 @@ contract offscriptNFT is ERC721URIStorage, Ownable {
 
   // A function our user will hit to get their NFT.
   function makeNFT() public {
-    //Duvida, mint uma vez
-    require(alreadyMint[msg.sender] == false, "You already minted.");
-    alreadyMint[msg.sender] = true;
+    
      // Get the current tokenId, this starts at 0.
     uint256 newItemId = _tokenIds.current();
 
@@ -46,8 +42,6 @@ contract offscriptNFT is ERC721URIStorage, Ownable {
     _setTokenURI(newItemId, "https://jsonkeeper.com/b/EY64");
 
     console.log("An NFT w/ ID %s has been minted to %s", newItemId, msg.sender);
-
-    
 
     // Increment the counter for when the next NFT is minted.
     _tokenIds.increment();

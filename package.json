@@ -4,7 +4,6 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
-    "@openzeppelin/contracts": "^4.4.2",
     "abort-controller": "^3.0.0",
     "abstract-leveldown": "^6.3.0",
     "acorn": "^8.7.0",
@@ -379,8 +378,10 @@
     "yn": "^3.1.1"
   },
   "devDependencies": {
+    "@chainlink/contracts": "^0.3.1",
     "@nomiclabs/hardhat-ethers": "^2.0.4",
     "@nomiclabs/hardhat-waffle": "^2.0.2",
+    "@openzeppelin/contracts": "^4.4.2",
     "chai": "^4.3.6",
     "docenv": "^2.0.6",
     "ethereum-waffle": "^3.4.0",
