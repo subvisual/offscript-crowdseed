@@ -26,8 +26,8 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
 
     //Supplies
     uint256 immutable totalPublicSupply;
-    uint256 publicSupply;
-    uint256 internalSupply;
+    uint256 public publicSupply;
+    uint256 public internalSupply;
 
     // { 10 => 10, 20 => 15, 30 => 15, 50 => 4, 100 => 1}
     /*uint discount10 = 10;
@@ -36,8 +36,8 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
   uint discount50 = 4;
   uint discount100 = 1;*/
 
-    uint256[] discounts;
-    uint256[] availablePerTrait;
+    uint256[] public discounts;
+    uint256[] public availablePerTrait;
 
     // We need to pass the name of our NFTs token and its symbol.
     constructor(
@@ -47,7 +47,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         uint256 _internalSupply,
         uint256[] memory _discounts,
         uint256[] memory _availablePerTrait
-    ) ERC721("OffscriptNFT", "OFFSCRIPT") Ownable() {
+    ) ERC721("Offscript NFT", "OFFSCRIPT") Ownable() {
         console.log("This is my NFT contract. Woah!");
 
         baseURI = _baseURI;
