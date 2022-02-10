@@ -30,7 +30,7 @@ describe("OffscriptNFT", () => {
 
   describe("constructor", () => {
     it("sets the correct name", async () => {
-      expect(await nft.name()).to.equal("OffscriptNFT");
+      expect(await nft.name()).to.equal("Offscript NFT");
     });
 
     it("sets the correct symbol", async () => {

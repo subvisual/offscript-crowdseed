@@ -26,17 +26,23 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
 
   //Supplies
   uint immutable totalPublicSupply;
-  uint public publicSupply;
-  uint public internalSupply;
+  uint publicSupply;
+  uint internalSupply;
 
   // { 10 => 10, 20 => 15, 30 => 15, 50 => 4, 100 => 1}
-  uint[] public discounts;
-  uint[] public availablePerTrait;
+  /*uint discount10 = 10;
+  uint discount20 = 15;
+  uint discount30 = 15;
+  uint discount50 = 4;
+  uint discount100 = 1;*/
+
+  uint[] discounts;
+  uint[] availablePerTrait;
 
 
   // We need to pass the name of our NFTs token and its symbol.
   constructor(address _owner, string memory _baseURI, uint _publicSupply, uint _internalSupply, uint[] memory _discounts, uint[] memory _availablePerTrait) ERC721("OffscriptNFT", "OFFSCRIPT") Ownable() {
-    //console.log("This is my NFT contract. Woah!");
+    console.log("This is my NFT contract. Woah!");
 
     baseURI = _baseURI;
     totalPublicSupply = _publicSupply;
@@ -68,14 +74,14 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
     // Set the NFTs data.
     // _setTokenURI(newItemId, "data:application/json;base64,ewogICAgIm5hbWUiOiAiT2Zmc2NyaXB0IE5GVCIsCiAgICAiZGVzY3JpcHRpb24iOiAiR2V0IGRpc2NvdW50IHdpdGggdGhpcyBiZWF1dHkuIiwKICAgICJpbWFnZSI6IAoiZGF0YTppbWFnZS9zdmcreG1sO2Jhc2U2NCxQSE4yWnlCNGJXeHVjejBpYUhSMGNEb3ZMM2QzZHk1M015NXZjbWN2TWpBd01DOXpkbWNpSUhCeVpYTmxjblpsUVhOd1pXTjBVbUYwYVc4OUluaE5hVzVaVFdsdUlHMWxaWFFpSUhacFpYZENiM2c5SWpBZ01DQXpOVEFnTXpVd0lqNEtJQ0FnSUR4emRIbHNaVDR1WW1GelpTQjdJR1pwYkd3NklIZG9hWFJsT3lCbWIyNTBMV1poYldsc2VUb2djMlZ5YVdZN0lHWnZiblF0YzJsNlpUb2dNVFJ3ZURzZ2ZUd3ZjM1I1YkdVK0NpQWdJQ0E4Y21WamRDQjNhV1IwYUQwaU1UQXdKU0lnYUdWcFoyaDBQU0l4TURBbElpQm1hV3hzUFNKaWJHRmpheUlnTHo0S0lDQWdJRHgwWlhoMElIZzlJalV3SlNJZ2VUMGlOVEFsSWlCamJHRnpjejBpWW1GelpTSWdaRzl0YVc1aGJuUXRZbUZ6Wld4cGJtVTlJbTFwWkdSc1pTSWdkR1Y0ZEMxaGJtTm9iM0k5SW0xcFpHUnNaU0krVDJabWMyTnlhWEIwUEM5MFpYaDBQZ284TDNOMlp6ND0iCiAgICAiYXR0cmlidXRlcyI6IFsKICAgICAgICAidmFsdWUiOiAiw4Fydm9yZSIsCnsKICAgICAgICAidHJhaXRfdHlwZSI6ICJQcmljZSIsIAogICAgICAidmFsdWUiOiAiMzAsMDAkIgp9CgpdCn0=");
 
-    console.log("An NFT w/ ID %s has been minted to %s with discount %s", newItemId, msg.sender, discount);
+    console.log("An NFT w/ ID %s has been minted to %s", newItemId, msg.sender);
 
     // Increment the counter for when the next NFT is minted.
     _tokenIds.increment();
     _idPublic.increment();
   }
 
-
+  // Mint reserved NFTs
   function mintInternal(address[] calldata _addresses, uint[] calldata _discounts) external onlyOwner {
     require(_addresses.length==_discounts.length,"Arrays size must be the same");
     require(_addresses.length>0,"Array must be greater than 0");
@@ -98,30 +104,26 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
     _safeMint(_owner, _id);
   }
 
-  function calculateDiscount(uint random) internal returns(uint discount){
-    uint _random = random % publicSupply;
-    console.log("Random is %s" , _random);
-    // 10 -> 10% // 15 -> 20% // 15 -> 30% // 4 -> 40% // 1 -> 50%
+  function calculateDiscount(uint random) internal returns(uint256){
+      uint _random = random % publicSupply;
+    // 10 -> 10% // 15 -> 20% // 15 -> 30% // 4 -> 50% // 1 -> 100%
     uint i = 0;
     while(i < availablePerTrait.length){
-      console.log("Random inside is %s" , _random);
-      bool aux = (_random <= availablePerTrait[i] && availablePerTrait[i] > 0);
-      if(aux){
+      uint aux = availablePerTrait[i] - _random;
+      if(aux > 0){
         publicSupply -= 1;
         availablePerTrait[i] -= 1;
         return discounts[i];
       }
-      else{
+      else
         _random -= availablePerTrait[i];
-      }
-      i++;
     }
   }
 
-
-  
-
-
+  // retorna o desconto associado a um tokenID
+  function getDiscount(uint tokenID) public view returns (uint256){
+    return traits[tokenID];
+  }
 
   //Override functions
   function _beforeTokenTransfer(address from, address to, uint256 amount) internal override(ERC721, ERC721Enumerable){
