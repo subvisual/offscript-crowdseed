@@ -89,9 +89,9 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
 
     uint256 length = _addresses.length;
 
-    require(internalSupply >= length, "Depleted");
+    require(internalSupply >= length && internalSupply > 0, "Depleted");
 
-    for(uint256 i = 1; i < length; i++) {
+    for(uint256 i = 0; i < length; i++) {
       _mintWithDiscount(_addresses[i], _idInside.current() + totalPublicSupply, discounts[i]);
       _idInside.increment();
       internalSupply -= 1;
