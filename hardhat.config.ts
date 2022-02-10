@@ -13,7 +13,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 });
 
 const config = {
-  solidity: "0.8.0",
+  solidity: "0.8.11",
 };
 
 export default config;

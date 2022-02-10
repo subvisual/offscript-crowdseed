@@ -8,3 +8,4 @@ typechain
 cache
 artifacts
 .lvimrc
+typechain-types
