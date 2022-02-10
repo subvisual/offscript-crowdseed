@@ -19,7 +19,6 @@ describe("OffscriptNFT", () => {
     let OffscriptNFT = await ethers.getContractFactory("OffscriptNFT");
 
     nft = (await OffscriptNFT.deploy(
-      owner.address,
       "http://localhost/",
       45,
       105,
