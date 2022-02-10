@@ -3,17 +3,20 @@ const { ethers } = require("hardhat");
 
 describe("Greeter", function () {
   it("Should return the new greeting once it's changed", async function () {
-    const Greeter = await ethers.getContractFactory("Greeter");
-    const greeter = await Greeter.deploy("Hello, world!");
-    await greeter.deployed();
+    const Contract = await ethers.getContractFactory("offscriptNFT");
+    const contract = await Contract.deploy("My wallet");
+    await contract.deployed();
 
-    expect(await greeter.greet()).to.equal("Hello, world!");
-
-    const setGreetingTx = await greeter.setGreeting("Hola, mundo!");
-
-    // wait until the transaction is mined
-    await setGreetingTx.wait();
-
-    expect(await greeter.greet()).to.equal("Hola, mundo!");
+    for(let i=0; i < 45; i++){
+      const mintTx = await contract.makeNFT();
+      await mintTx.wait();
+    } // duvidas
+    
   });
 });
+
+/* 
+  Simular pagamentos
+  Randomness
+  45 nfts - corresponde ao esperado. 
+*/

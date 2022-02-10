@@ -6,6 +6,8 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 
 contract offscriptPayment is Ownable{
@@ -56,12 +58,21 @@ contract offscriptPayment is Ownable{
         priceFeedUsdc = AggregatorV3Interface(oracleUsdc);
     }
 
+<<<<<<< HEAD
     function checkForNft(address owner) public returns(uint discont){
         uint256 num = _nftContract.balance(owner);
         if(num = 0)
             return -1;
         for(uint256 i = 0; i<num; i++){
             uint256 tokenId = tokenOfOwnerByIndex(owner,i);
+=======
+    function checkForNft(address owner) public returns(uint){
+        uint256 num = 0;//_nftContract.balance(owner);
+        if(num == 0)
+            return 0;
+        for(uint256 i = 0; i<num; i++){
+            //uint256 tokenId = tokenOfOwnerByIndex(owner,i);
+>>>>>>> da9f0ca2355ecf509b56a5cbd7dee8d421e4e17c
             //duvida
         }
         
