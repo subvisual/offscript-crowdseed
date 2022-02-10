@@ -65,28 +65,11 @@ contract offscriptPayment is Ownable {
         priceFeedUsdc = AggregatorV3Interface(oracleUsdc);
     }
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-    function checkForNft(address owner) public returns(uint discont){
-        uint256 num = _nftContract.balance(owner);
-        if(num = 0)
-            return -1;
-        for(uint256 i = 0; i<num; i++){
-            uint256 tokenId = tokenOfOwnerByIndex(owner,i);
-=======
-    function checkForNft(address owner) public returns(uint){
-        uint256 num = 0;//_nftContract.balance(owner);
-        if(num == 0)
-            return 0;
-        for(uint256 i = 0; i<num; i++){
-=======
     function checkForNft(address owner) public returns (uint256) {
         uint256 num = 0; //_nftContract.balance(owner);
         if (num == 0) return 0;
         for (uint256 i = 0; i < num; i++) {
->>>>>>> f033b8c88bdf16a69622e6164e730ed2ffd95b1f
             //uint256 tokenId = tokenOfOwnerByIndex(owner,i);
->>>>>>> da9f0ca2355ecf509b56a5cbd7dee8d421e4e17c
             //duvida
         }
 

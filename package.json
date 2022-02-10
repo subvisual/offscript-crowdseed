@@ -51,5 +51,8 @@
   "bugs": {
     "url": "https://github.com/subvisual/offscript/issues"
   },
-  "homepage": "https://github.com/subvisual/offscript#readme"
+  "homepage": "https://github.com/subvisual/offscript#readme",
+  "devDependencies": {
+    "@types/jest": "^27.4.0"
+  }
 }
