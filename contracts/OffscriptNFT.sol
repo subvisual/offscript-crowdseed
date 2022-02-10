@@ -81,7 +81,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
     _idPublic.increment();
   }
 
-  // Função dedicada ao mint dos nfts reservados
+  // Mint reserved NFTs
   function mintInternal(address[] calldata _addresses, uint[] calldata _discounts) external onlyOwner {
     require(_addresses.length==_discounts.length,"Arrays size must be the same");
     require(_addresses.length>0,"Array must be greater than 0");
