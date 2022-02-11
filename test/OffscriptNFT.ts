@@ -3,6 +3,7 @@ import { expect } from "chai";
 
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { OffscriptNFT } from "../typechain-types";
+import { assert } from "console";
 
 const { parseUnits } = ethers.utils;
 
@@ -19,7 +20,7 @@ describe("OffscriptNFT", () => {
     let OffscriptNFT = await ethers.getContractFactory("OffscriptNFT");
 
     nft = (await OffscriptNFT.deploy(
-      "http://localhost/",
+      "https://our-url.com/nfts/",
       45,
       105,
       [10, 20, 30, 40, 50],
@@ -103,5 +104,24 @@ describe("OffscriptNFT", () => {
         "Ownable: caller is not the owner"
       );
     });
+
+    describe("check URI functions", () => {
+      
+      it("checks if URI is correct", async() => {
+        nft.connect(alice).mintPublic();
+        
+        const token_uri = await nft.tokenURI(0);
+
+        await expect(token_uri).to.equal('https://our-url.com/nfts/0')
+      });
+
+      it("does not allow anyone but the owner to change the baseURI", async () => {
+        const action = nft.connect(alice).setBaseURI("someURL");
+
+        await expect(action).to.be.revertedWith(
+          "Ownable: caller is not the owner"
+        );
+      })
+    })
   });
 });

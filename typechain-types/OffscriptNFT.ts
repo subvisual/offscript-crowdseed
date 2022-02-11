@@ -20,19 +20,23 @@ import { TypedEventFilter, TypedEvent, TypedListener, OnEvent } from "./common";
 export interface OffscriptNFTInterface extends utils.Interface {
   functions: {
     "approve(address,uint256)": FunctionFragment;
+    "availablePerTrait(uint256)": FunctionFragment;
     "balanceOf(address)": FunctionFragment;
     "baseURI()": FunctionFragment;
+    "discounts(uint256)": FunctionFragment;
     "getApproved(uint256)": FunctionFragment;
-    "getDiscount(uint256)": FunctionFragment;
+    "internalSupply()": FunctionFragment;
     "isApprovedForAll(address,address)": FunctionFragment;
     "mintInternal(address[],uint256[])": FunctionFragment;
     "mintPublic()": FunctionFragment;
     "name()": FunctionFragment;
     "owner()": FunctionFragment;
     "ownerOf(uint256)": FunctionFragment;
+    "publicSupply()": FunctionFragment;
     "renounceOwnership()": FunctionFragment;
     "safeTransferFrom(address,address,uint256)": FunctionFragment;
     "setApprovalForAll(address,bool)": FunctionFragment;
+    "setBaseURI(string)": FunctionFragment;
     "supportsInterface(bytes4)": FunctionFragment;
     "symbol()": FunctionFragment;
     "tokenByIndex(uint256)": FunctionFragment;
@@ -48,15 +52,23 @@ export interface OffscriptNFTInterface extends utils.Interface {
     functionFragment: "approve",
     values: [string, BigNumberish]
   ): string;
+  encodeFunctionData(
+    functionFragment: "availablePerTrait",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(functionFragment: "balanceOf", values: [string]): string;
   encodeFunctionData(functionFragment: "baseURI", values?: undefined): string;
+  encodeFunctionData(
+    functionFragment: "discounts",
+    values: [BigNumberish]
+  ): string;
   encodeFunctionData(
     functionFragment: "getApproved",
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
-    functionFragment: "getDiscount",
-    values: [BigNumberish]
+    functionFragment: "internalSupply",
+    values?: undefined
   ): string;
   encodeFunctionData(
     functionFragment: "isApprovedForAll",
@@ -77,6 +89,10 @@ export interface OffscriptNFTInterface extends utils.Interface {
     values: [BigNumberish]
   ): string;
   encodeFunctionData(
+    functionFragment: "publicSupply",
+    values?: undefined
+  ): string;
+  encodeFunctionData(
     functionFragment: "renounceOwnership",
     values?: undefined
   ): string;
@@ -88,6 +104,7 @@ export interface OffscriptNFTInterface extends utils.Interface {
     functionFragment: "setApprovalForAll",
     values: [string, boolean]
   ): string;
+  encodeFunctionData(functionFragment: "setBaseURI", values: [string]): string;
   encodeFunctionData(
     functionFragment: "supportsInterface",
     values: [BytesLike]
@@ -123,14 +140,19 @@ export interface OffscriptNFTInterface extends utils.Interface {
   ): string;
 
   decodeFunctionResult(functionFragment: "approve", data: BytesLike): Result;
+  decodeFunctionResult(
+    functionFragment: "availablePerTrait",
+    data: BytesLike
+  ): Result;
   decodeFunctionResult(functionFragment: "balanceOf", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "baseURI", data: BytesLike): Result;
+  decodeFunctionResult(functionFragment: "discounts", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "getApproved",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
-    functionFragment: "getDiscount",
+    functionFragment: "internalSupply",
     data: BytesLike
   ): Result;
   decodeFunctionResult(
@@ -146,6 +168,10 @@ export interface OffscriptNFTInterface extends utils.Interface {
   decodeFunctionResult(functionFragment: "owner", data: BytesLike): Result;
   decodeFunctionResult(functionFragment: "ownerOf", data: BytesLike): Result;
   decodeFunctionResult(
+    functionFragment: "publicSupply",
+    data: BytesLike
+  ): Result;
+  decodeFunctionResult(
     functionFragment: "renounceOwnership",
     data: BytesLike
   ): Result;
@@ -157,6 +183,7 @@ export interface OffscriptNFTInterface extends utils.Interface {
     functionFragment: "setApprovalForAll",
     data: BytesLike
   ): Result;
+  decodeFunctionResult(functionFragment: "setBaseURI", data: BytesLike): Result;
   decodeFunctionResult(
     functionFragment: "supportsInterface",
     data: BytesLike
@@ -188,12 +215,14 @@ export interface OffscriptNFTInterface extends utils.Interface {
   events: {
     "Approval(address,address,uint256)": EventFragment;
     "ApprovalForAll(address,address,bool)": EventFragment;
+    "BaseURIUpdated(string)": EventFragment;
     "OwnershipTransferred(address,address)": EventFragment;
     "Transfer(address,address,uint256)": EventFragment;
   };
 
   getEvent(nameOrSignatureOrTopic: "Approval"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "ApprovalForAll"): EventFragment;
+  getEvent(nameOrSignatureOrTopic: "BaseURIUpdated"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "OwnershipTransferred"): EventFragment;
   getEvent(nameOrSignatureOrTopic: "Transfer"): EventFragment;
 }
@@ -211,6 +240,10 @@ export type ApprovalForAllEvent = TypedEvent<
 >;
 
 export type ApprovalForAllEventFilter = TypedEventFilter<ApprovalForAllEvent>;
+
+export type BaseURIUpdatedEvent = TypedEvent<[string], { newBaseURI: string }>;
+
+export type BaseURIUpdatedEventFilter = TypedEventFilter<BaseURIUpdatedEvent>;
 
 export type OwnershipTransferredEvent = TypedEvent<
   [string, string],
@@ -260,19 +293,26 @@ export interface OffscriptNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
+    availablePerTrait(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
+
     balanceOf(owner: string, overrides?: CallOverrides): Promise<[BigNumber]>;
 
     baseURI(overrides?: CallOverrides): Promise<[string]>;
+
+    discounts(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<[BigNumber]>;
 
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<[string]>;
 
-    getDiscount(
-      tokenID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<[BigNumber]>;
+    internalSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
 
     isApprovedForAll(
       owner: string,
@@ -299,6 +339,8 @@ export interface OffscriptNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<[string]>;
 
+    publicSupply(overrides?: CallOverrides): Promise<[BigNumber]>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
@@ -321,6 +363,11 @@ export interface OffscriptNFT extends BaseContract {
     setApprovalForAll(
       operator: string,
       approved: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<ContractTransaction>;
+
+    setBaseURI(
+      _newBaseURI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<ContractTransaction>;
 
@@ -370,19 +417,23 @@ export interface OffscriptNFT extends BaseContract {
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
+  availablePerTrait(
+    arg0: BigNumberish,
+    overrides?: CallOverrides
+  ): Promise<BigNumber>;
+
   balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
   baseURI(overrides?: CallOverrides): Promise<string>;
+
+  discounts(arg0: BigNumberish, overrides?: CallOverrides): Promise<BigNumber>;
 
   getApproved(
     tokenId: BigNumberish,
     overrides?: CallOverrides
   ): Promise<string>;
 
-  getDiscount(
-    tokenID: BigNumberish,
-    overrides?: CallOverrides
-  ): Promise<BigNumber>;
+  internalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
   isApprovedForAll(
     owner: string,
@@ -406,6 +457,8 @@ export interface OffscriptNFT extends BaseContract {
 
   ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
 
+  publicSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
   renounceOwnership(
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
@@ -428,6 +481,11 @@ export interface OffscriptNFT extends BaseContract {
   setApprovalForAll(
     operator: string,
     approved: boolean,
+    overrides?: Overrides & { from?: string | Promise<string> }
+  ): Promise<ContractTransaction>;
+
+  setBaseURI(
+    _newBaseURI: string,
     overrides?: Overrides & { from?: string | Promise<string> }
   ): Promise<ContractTransaction>;
 
@@ -474,19 +532,26 @@ export interface OffscriptNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<void>;
 
+    availablePerTrait(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     baseURI(overrides?: CallOverrides): Promise<string>;
+
+    discounts(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<string>;
 
-    getDiscount(
-      tokenID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    internalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     isApprovedForAll(
       owner: string,
@@ -507,6 +572,8 @@ export interface OffscriptNFT extends BaseContract {
     owner(overrides?: CallOverrides): Promise<string>;
 
     ownerOf(tokenId: BigNumberish, overrides?: CallOverrides): Promise<string>;
+
+    publicSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     renounceOwnership(overrides?: CallOverrides): Promise<void>;
 
@@ -530,6 +597,8 @@ export interface OffscriptNFT extends BaseContract {
       approved: boolean,
       overrides?: CallOverrides
     ): Promise<void>;
+
+    setBaseURI(_newBaseURI: string, overrides?: CallOverrides): Promise<void>;
 
     supportsInterface(
       interfaceId: BytesLike,
@@ -591,6 +660,9 @@ export interface OffscriptNFT extends BaseContract {
       approved?: null
     ): ApprovalForAllEventFilter;
 
+    "BaseURIUpdated(string)"(newBaseURI?: null): BaseURIUpdatedEventFilter;
+    BaseURIUpdated(newBaseURI?: null): BaseURIUpdatedEventFilter;
+
     "OwnershipTransferred(address,address)"(
       previousOwner?: string | null,
       newOwner?: string | null
@@ -619,19 +691,26 @@ export interface OffscriptNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
+    availablePerTrait(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
+
     balanceOf(owner: string, overrides?: CallOverrides): Promise<BigNumber>;
 
     baseURI(overrides?: CallOverrides): Promise<BigNumber>;
+
+    discounts(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<BigNumber>;
 
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
-    getDiscount(
-      tokenID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<BigNumber>;
+    internalSupply(overrides?: CallOverrides): Promise<BigNumber>;
 
     isApprovedForAll(
       owner: string,
@@ -658,6 +737,8 @@ export interface OffscriptNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<BigNumber>;
 
+    publicSupply(overrides?: CallOverrides): Promise<BigNumber>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
@@ -680,6 +761,11 @@ export interface OffscriptNFT extends BaseContract {
     setApprovalForAll(
       operator: string,
       approved: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<BigNumber>;
+
+    setBaseURI(
+      _newBaseURI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<BigNumber>;
 
@@ -730,6 +816,11 @@ export interface OffscriptNFT extends BaseContract {
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
+    availablePerTrait(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     balanceOf(
       owner: string,
       overrides?: CallOverrides
@@ -737,15 +828,17 @@ export interface OffscriptNFT extends BaseContract {
 
     baseURI(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
+    discounts(
+      arg0: BigNumberish,
+      overrides?: CallOverrides
+    ): Promise<PopulatedTransaction>;
+
     getApproved(
       tokenId: BigNumberish,
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
-    getDiscount(
-      tokenID: BigNumberish,
-      overrides?: CallOverrides
-    ): Promise<PopulatedTransaction>;
+    internalSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
 
     isApprovedForAll(
       owner: string,
@@ -772,6 +865,8 @@ export interface OffscriptNFT extends BaseContract {
       overrides?: CallOverrides
     ): Promise<PopulatedTransaction>;
 
+    publicSupply(overrides?: CallOverrides): Promise<PopulatedTransaction>;
+
     renounceOwnership(
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
@@ -794,6 +889,11 @@ export interface OffscriptNFT extends BaseContract {
     setApprovalForAll(
       operator: string,
       approved: boolean,
+      overrides?: Overrides & { from?: string | Promise<string> }
+    ): Promise<PopulatedTransaction>;
+
+    setBaseURI(
+      _newBaseURI: string,
       overrides?: Overrides & { from?: string | Promise<string> }
     ): Promise<PopulatedTransaction>;
 
