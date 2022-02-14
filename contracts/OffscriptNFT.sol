@@ -32,6 +32,8 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
     uint256[] public discounts;
     uint256[] public availablePerTrait;
 
+     event BaseURIUpdated(string newBaseURI);
+
     // We need to pass the name of our NFTs token and its symbol.
     constructor(
         string memory _baseURI,
@@ -43,6 +45,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         //console.log("This is my NFT contract. Woah!");
 
         baseURI = _baseURI;
+        
         totalPublicSupply = _publicSupply;
         publicSupply = _publicSupply;
         internalSupply = _internalSupply;
@@ -134,6 +137,28 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
             }
             i++;
         }
+    }
+
+    function setBaseURI(string memory _newBaseURI) public onlyOwner {
+        baseURI = _newBaseURI;
+
+        emit BaseURIUpdated(_newBaseURI);
+    }
+
+    // 
+    /*function tokenURI(uint256 tokenID) public view override(ERC721) returns (string memory) {
+      bytes(baseURI).length > 0
+                ? string(
+                    abi.encodePacked(
+                        baseURI,
+                        tokenID.toString()
+                    )
+                )
+                : "";
+    }*/
+
+    function _baseURI() internal view override(ERC721) returns (string memory) {
+        return baseURI;
     }
 
     //Override functions
