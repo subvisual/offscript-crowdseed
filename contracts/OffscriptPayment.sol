@@ -21,7 +21,6 @@ contract offscriptPayment is Ownable {
     AggregatorV3Interface priceFeedUsdt;
     AggregatorV3Interface priceFeedUsdc;
 
-
     mapping(address => address) oracles;
 
     //Oracles
@@ -31,6 +30,7 @@ contract offscriptPayment is Ownable {
     //USDC / USD  -  0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6
 
     //Save some info?
+    event TicketSold(address, uint256);
     event Payment(
         address payer,
         uint256 amount,
@@ -55,13 +55,10 @@ contract offscriptPayment is Ownable {
         //nftContract
         _nftContract = nftContract;
 
-
-
         //Mock tokens
         _dai = IERC20(_daiAddress);
         _usdt = IERC20(_usdtAddress);
         _usdc = IERC20(_usdcAddress);
-
 
         oracles[_dai] = oracleDai;
         oracles[_usdt] = oracleUsdt;
@@ -78,15 +75,14 @@ contract offscriptPayment is Ownable {
         uint256 num = _nftContract.balanceOf(owner);
         uint256 discount = 0;
         for (uint256 i = 0; i < num; i++) {
-            uint256 tokenId = _nftContract.tokenOfOwnerByIndex(owner,i);
+            uint256 tokenId = _nftContract.tokenOfOwnerByIndex(owner, i);
             discount = _nftContract.traits(tokenId);
         }
 
         return discount;
     }
-    
 
-    function payWithEth(uint ticketPrice) external payable {
+    function payWithEth(uint256 ticketPrice) external payable {
         AggregatorV3Interface oracle = AggregatorV3Interface(
             oracles[address(0x0)]
         );
@@ -104,11 +100,13 @@ contract offscriptPayment is Ownable {
         ) = oracle.latestRoundData();
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint amount = ((ticketPrice*10**oracleDecimals) / price) * 10**(decimals - oracleDecimals);
+        uint256 amount = ((ticketPrice * 10**oracleDecimals) / price) *
+            10**(decimals - oracleDecimals);
 
+        emit PaidWithEth(msg.sender, nftId, amount);
     }
 
-    function paytWithERC20(address _token, uint ticketPrice) external {
+    function paytWithERC20(address _token, uint256 ticketPrice) external {
         require(_token != address(0x0));
         AggregatorV3Interface oracle = AggregatorV3Interface(oracles[_token]);
 
@@ -127,16 +125,20 @@ contract offscriptPayment is Ownable {
         ) = oracle.latestRoundData();
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint amount = ((ticketPrice*10**oracleDecimals) / price) * 10**(decimals - oracleDecimals);
-
+        uint256 amount = ((ticketPrice * 10**oracleDecimals) *
+            10**(decimals - oracleDecimals)) / price;
 
         IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
+
+        emit PaidWithERC20(msg.sender, _token, nftId, amount);
     }
 
     //Caso erro - abortar revert ou require
 
-    function withdraw() external onlyOwner{
-
+    function withdraw() external onlyOwner {
+        _dai.safeTransfer(msg.sender, _dai.balanceOf(address(this)));
+        _usdt.safeTransfer(msg.sender, _usdt.balanceOf(address(this)));
+        _usdc.safeTransfer(msg.sender, _usdc.balanceOf(address(this)));
+        payable(msg.sender).transfer(this.balance);
     }
-
 }
