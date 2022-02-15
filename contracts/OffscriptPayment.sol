@@ -16,6 +16,8 @@ contract offscriptPayment is Ownable {
 
     address _nftContract;
 
+    uint256 ticketPrice;
+
     AggregatorV3Interface priceFeedEth;
     AggregatorV3Interface priceFeedDai;
     AggregatorV3Interface priceFeedUsdt;
@@ -30,13 +32,11 @@ contract offscriptPayment is Ownable {
     //USDC / USD  -  0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6
 
     //Save some info?
-    event TicketSold(address, uint256);
     event Payment(
         address payer,
         uint256 amount,
-        uint256 paymentId,
-        string paymentMethod,
-        uint256 date
+        uint256 nftId,
+        address tokenId
     );
 
     constructor(
@@ -48,7 +48,8 @@ contract offscriptPayment is Ownable {
         address oracleEth,
         address oracleUsdt,
         address oracleUsdc,
-        address nftContract
+        address nftContract,
+        uint256 _ticketPrice
     ) {
         _transferOwnership(_owner);
 
@@ -60,35 +61,39 @@ contract offscriptPayment is Ownable {
         _usdt = IERC20(_usdtAddress);
         _usdc = IERC20(_usdcAddress);
 
-        oracles[_dai] = oracleDai;
-        oracles[_usdt] = oracleUsdt;
-        oracles[_usdc] = oracleUsdc;
+        oracles[address(_dai)] = oracleDai;
+        oracles[address(_usdt)] = oracleUsdt;
+        oracles[address(_usdc)] = oracleUsdc;
         oracles[address(0x0)] = oracleEth;
 
-        priceFeedDai = AggregatorV3Interface(oracleDai);
-        priceFeedEth = AggregatorV3Interface(oracleEth);
-        priceFeedUsdt = AggregatorV3Interface(oracleUsdt);
-        priceFeedUsdc = AggregatorV3Interface(oracleUsdc);
+        ticketPrice = _ticketPrice;
     }
 
-    function checkForNft(address owner) public returns (uint256) {
+    function checkForNft(address owner) public returns (uint256,uint256) {
         uint256 num = _nftContract.balanceOf(owner);
         uint256 discount = 0;
+        uint256 tokenId = 0;
         for (uint256 i = 0; i < num; i++) {
-            uint256 tokenId = _nftContract.tokenOfOwnerByIndex(owner, i);
-            discount = _nftContract.traits(tokenId);
+            uint256 aux = _nftContract.tokenOfOwnerByIndex(owner, i);
+            uint256 aux2 = _nftContract.traits(aux);
+            if(aux2 > discount){
+                discount = aux2;
+                tokenId = aux;
+            }
         }
 
-        return discount;
+        return (discount,tokenId);
     }
 
-    function payWithEth(uint256 ticketPrice) external payable {
+    function payWithEth() external payable {
         AggregatorV3Interface oracle = AggregatorV3Interface(
             oracles[address(0x0)]
         );
 
-        uint256 decimals = eth.decimals();
+        uint256 decimals = 18;
         uint256 oracleDecimals = oracle.decimals();
+
+        (uint discount, uint nftId) = checkForNft(msg.sender);
 
         // call oracle & compute price
         (
@@ -99,14 +104,15 @@ contract offscriptPayment is Ownable {
             uint80 answeredInRound
         ) = oracle.latestRoundData();
 
+        //Falta aplicar o desconto
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
         uint256 amount = ((ticketPrice * 10**oracleDecimals) / price) *
             10**(decimals - oracleDecimals);
 
-        emit PaidWithEth(msg.sender, nftId, amount);
+        emit Payment(msg.sender, amount, nftId, 0);
     }
 
-    function paytWithERC20(address _token, uint256 ticketPrice) external {
+    function paytWithERC20(address _token) external {
         require(_token != address(0x0));
         AggregatorV3Interface oracle = AggregatorV3Interface(oracles[_token]);
 
@@ -114,6 +120,8 @@ contract offscriptPayment is Ownable {
 
         uint256 decimals = IERC20(_token).decimals();
         uint256 oracleDecimals = oracle.decimals();
+
+        (uint discount, uint nftId) = checkForNft(msg.sender);
 
         // call oracle & compute price
         (
@@ -130,7 +138,7 @@ contract offscriptPayment is Ownable {
 
         IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
 
-        emit PaidWithERC20(msg.sender, _token, nftId, amount);
+        emit Payment(msg.sender, amount, nftId, _token);
     }
 
     //Caso erro - abortar revert ou require
