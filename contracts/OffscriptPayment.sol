@@ -21,8 +21,8 @@ contract offscriptPayment is Ownable {
     AggregatorV3Interface priceFeedUsdt;
     AggregatorV3Interface priceFeedUsdc;
 
-    //Eight for every currency
-    int256 decimals = 8;
+
+    mapping(address => address) oracles;
 
     //Oracles
     //DAI / USD  -  0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9
@@ -55,10 +55,19 @@ contract offscriptPayment is Ownable {
         //nftContract
         _nftContract = nftContract;
 
+
+
         //Mock tokens
         _dai = IERC20(_daiAddress);
         _usdt = IERC20(_usdtAddress);
         _usdc = IERC20(_usdcAddress);
+
+
+        oracles[_dai] = oracleDai;
+        oracles[_usdt] = oracleUsdt;
+        oracles[_usdc] = oracleUsdc;
+        oracles[address(0x0)] = oracleEth;
+
         priceFeedDai = AggregatorV3Interface(oracleDai);
         priceFeedEth = AggregatorV3Interface(oracleEth);
         priceFeedUsdt = AggregatorV3Interface(oracleUsdt);
@@ -66,85 +75,68 @@ contract offscriptPayment is Ownable {
     }
 
     function checkForNft(address owner) public returns (uint256) {
-        uint256 num = 0; //_nftContract.balance(owner);
-        if (num == 0) return 0;
+        uint256 num = _nftContract.balanceOf(owner);
+        uint256 discount = 0;
         for (uint256 i = 0; i < num; i++) {
-            //uint256 tokenId = tokenOfOwnerByIndex(owner,i);
-            //duvida
+            uint256 tokenId = _nftContract.tokenOfOwnerByIndex(owner,i);
+            discount = _nftContract.traits(tokenId);
         }
 
-        return 10; //Enumerable
+        return discount;
+    }
+    
+
+    function payWithEth(uint ticketPrice) external payable {
+        AggregatorV3Interface oracle = AggregatorV3Interface(
+            oracles[address(0x0)]
+        );
+
+        uint256 decimals = eth.decimals();
+        uint256 oracleDecimals = oracle.decimals();
+
+        // call oracle & compute price
+        (
+            uint80 roundID,
+            int256 price,
+            uint256 startedAt,
+            uint256 timeStamp,
+            uint80 answeredInRound
+        ) = oracle.latestRoundData();
+
+        // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
+        uint amount = ((ticketPrice*10**oracleDecimals) / price) * 10**(decimals - oracleDecimals);
+
+    }
+
+    function paytWithERC20(address _token, uint ticketPrice) external {
+        require(_token != address(0x0));
+        AggregatorV3Interface oracle = AggregatorV3Interface(oracles[_token]);
+
+        require(address(oracle) != address(0x0), "token not supported");
+
+        uint256 decimals = IERC20(_token).decimals();
+        uint256 oracleDecimals = oracle.decimals();
+
+        // call oracle & compute price
+        (
+            uint80 roundID,
+            int256 price,
+            uint256 startedAt,
+            uint256 timeStamp,
+            uint80 answeredInRound
+        ) = oracle.latestRoundData();
+
+        // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
+        uint amount = ((ticketPrice*10**oracleDecimals) / price) * 10**(decimals - oracleDecimals);
+
+
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
     }
 
     //Caso erro - abortar revert ou require
 
-    function payWithDai() external payable {
-        //Check NFT for discount
-        uint256 discount = checkForNft(address(0));
+    function withdraw() external onlyOwner{
 
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeedDai.latestRoundData();
-
-        //Price is in price
-        //Apply discount and check balance
-        uint256 daiBalance = _dai.balanceOf(msg.sender);
-        //If everything is alright, just transfer
     }
 
-    function payWithUsdt() external payable {
-        //Check NFT for discount
-        checkForNft(address(0));
-
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeedUsdt.latestRoundData();
-        //Apply discount and check balance
-        uint256 usdtBalance = _usdt.balanceOf(msg.sender);
-
-        //If everything is alright, just transfer
-    }
-
-    function payWithUsdc() external payable {
-        //Check NFT for discount
-        checkForNft(address(0));
-
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeedUsdc.latestRoundData();
-
-        //Apply discount and check balance
-        uint256 usdcBalance = _usdc.balanceOf(msg.sender);
-        //If everything is alright, just transfer
-    }
-
-    function payWithEth() external {
-        //Check NFT for discount
-        checkForNft(address(0));
-
-        (
-            uint80 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint80 answeredInRound
-        ) = priceFeedEth.latestRoundData();
-
-        //Apply discount and check balance
-        uint256 ethBalance = msg.sender.balance;
-
-        //If everything is alright, just transfer
-    }
 }
