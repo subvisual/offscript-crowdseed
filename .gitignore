@@ -9,3 +9,4 @@ cache
 artifacts
 .lvimrc
 typechain-types
+deployments/localhost
