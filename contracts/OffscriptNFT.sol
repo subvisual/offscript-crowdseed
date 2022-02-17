@@ -59,9 +59,9 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         require(publicSupply > 0, "Depleted");
         require(_idPublic.current() <= 45, "Maximum NFT's already minted");
 
-        uint8 random = uint8(
+        uint8 random = uint8(uint256(
             keccak256(abi.encodePacked(block.difficulty, block.timestamp))
-        );
+        ));
 
         // Get the current tokenId, this starts at 0.
         uint8 newItemId = uint8(_idPublic.current());
