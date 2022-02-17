@@ -8,11 +8,13 @@ import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/utils/Counters.sol";
 import "hardhat/console.sol";
-import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 // We inherit the contract we imported. This means we'll have access
 // to the inherited contract's methods.
-contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
+contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+
     // Magic given to us by OpenZeppelin to help us keep track of tokenIds.
     using Counters for Counters.Counter;
     Counters.Counter private _idInside; // contador para os reservados
@@ -41,11 +43,13 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         uint8 _internalSupply,
         uint8[] memory _discounts,
         uint8[] memory _availablePerTrait
-    ) ERC721("OffscriptNFT", "OFFSCRIPT") Ownable() {
+    ) ERC721("OffscriptNFT", "OFFSCRIPT") {
+        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _setupRole(MINTER_ROLE, msg.sender);
         //console.log("This is my NFT contract. Woah!");
 
         baseURI = _baseURI;
-        
+
         totalPublicSupply = _publicSupply;
         publicSupply = _publicSupply;
         internalSupply = _internalSupply;
@@ -54,8 +58,14 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         availablePerTrait = _availablePerTrait;
     }
 
+    function setMinter(address _minter) onlyRole(DEFAULT_ADMIN_ROLE) {
+        grantRole(MINTER_ROLE, _minter);
+    }
+
     // A function our user will hit to get their NFT.
-    function mintPublic() public {
+    function mintPublic(
+        /* TODO address */
+    ) public onlyRole(MINTER_ROLE) {
         require(publicSupply > 0, "Depleted");
         require(_idPublic.current() <= 45, "Maximum NFT's already minted");
 
@@ -84,7 +94,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
     function mintInternal(
         address[] calldata _addresses,
         uint8[] calldata _discounts
-    ) external onlyOwner {
+    ) external onlyRole(MINTER_ROLE) {
         require(
             _addresses.length == _discounts.length,
             "Arrays size must be the same"
@@ -145,7 +155,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         emit BaseURIUpdated(_newBaseURI);
     }
 
-    // 
+    //
     /*function tokenURI(uint256 tokenID) public view override(ERC721) returns (string memory) {
       bytes(baseURI).length > 0
                 ? string(
