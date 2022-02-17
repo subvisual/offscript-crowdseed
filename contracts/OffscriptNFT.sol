@@ -19,28 +19,28 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
     Counters.Counter private _idPublic; // contador dos minted aberto
 
     // token to discount
-    mapping(uint256 => uint256) public traits;
+    mapping(uint8 => uint8) public traits;
 
     string public baseURI;
 
     //Supplies
-    uint256 immutable totalPublicSupply;
-    uint256 public publicSupply;
-    uint256 public internalSupply;
+    uint8 immutable totalPublicSupply;
+    uint8 public publicSupply;
+    uint8 public internalSupply;
 
     // { 10 => 10, 20 => 15, 30 => 15, 50 => 4, 100 => 1}
-    uint256[] public discounts;
-    uint256[] public availablePerTrait;
+    uint8[] public discounts;
+    uint8[] public availablePerTrait;
 
      event BaseURIUpdated(string newBaseURI);
 
     // We need to pass the name of our NFTs token and its symbol.
     constructor(
         string memory _baseURI,
-        uint256 _publicSupply,
-        uint256 _internalSupply,
-        uint256[] memory _discounts,
-        uint256[] memory _availablePerTrait
+        uint8 _publicSupply,
+        uint8 _internalSupply,
+        uint8[] memory _discounts,
+        uint8[] memory _availablePerTrait
     ) ERC721("OffscriptNFT", "OFFSCRIPT") Ownable() {
         //console.log("This is my NFT contract. Woah!");
 
@@ -59,14 +59,14 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         require(publicSupply > 0, "Depleted");
         require(_idPublic.current() <= 45, "Maximum NFT's already minted");
 
-        uint256 random = uint256(
+        uint8 random = uint8(
             keccak256(abi.encodePacked(block.difficulty, block.timestamp))
         );
 
         // Get the current tokenId, this starts at 0.
-        uint256 newItemId = _idPublic.current();
+        uint8 newItemId = uint8(_idPublic.current());
 
-        uint256 discount = calculateDiscount(random);
+        uint8 discount = calculateDiscount(random);
 
         _mintWithDiscount(msg.sender, newItemId, discount);
 
@@ -83,7 +83,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
 
     function mintInternal(
         address[] calldata _addresses,
-        uint256[] calldata _discounts
+        uint8[] calldata _discounts
     ) external onlyOwner {
         require(
             _addresses.length == _discounts.length,
@@ -92,14 +92,14 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
         require(_addresses.length > 0, "Array must be greater than 0");
         // require(_idInside.current()<=105, "Maximum NFT's already minted");
 
-        uint256 length = _addresses.length;
+        uint8 length = uint8(_addresses.length);
 
         require(internalSupply >= length && internalSupply > 0, "Depleted");
 
-        for (uint256 i = 0; i < length; i++) {
+        for (uint8 i = 0; i < length; i++) {
             _mintWithDiscount(
                 _addresses[i],
-                _idInside.current() + totalPublicSupply,
+                uint8(_idInside.current() + totalPublicSupply),
                 discounts[i]
             );
             _idInside.increment();
@@ -109,21 +109,21 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, Ownable {
 
     function _mintWithDiscount(
         address _owner,
-        uint256 _id,
-        uint256 _discount
+        uint8 _id,
+        uint8 _discount
     ) internal {
         traits[_id] = _discount;
         _safeMint(_owner, _id);
     }
 
-    function calculateDiscount(uint256 random)
+    function calculateDiscount(uint8 random)
         internal
-        returns (uint256 discount)
+        returns (uint8 discount)
     {
-        uint256 _random = random % publicSupply;
+        uint8 _random = random % publicSupply;
         console.log("Random is %s", _random);
         // 10 -> 10% // 15 -> 20% // 15 -> 30% // 4 -> 40% // 1 -> 50%
-        uint256 i = 0;
+        uint8 i = 0;
         while (i < availablePerTrait.length) {
             console.log("Random inside is %s", _random);
             bool aux = (_random <= availablePerTrait[i] &&

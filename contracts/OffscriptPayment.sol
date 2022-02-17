@@ -16,7 +16,7 @@ contract offscriptPayment is Ownable {
 
     address _nftContract;
 
-    uint256 ticketPrice;
+    uint8 ticketPrice;
 
     AggregatorV3Interface priceFeedEth;
     AggregatorV3Interface priceFeedDai;
@@ -34,8 +34,8 @@ contract offscriptPayment is Ownable {
     //Save some info?
     event Payment(
         address payer,
-        uint256 amount,
-        uint256 nftId,
+        uint8 amount,
+        uint8 nftId,
         address tokenId
     );
 
@@ -49,7 +49,7 @@ contract offscriptPayment is Ownable {
         address oracleUsdt,
         address oracleUsdc,
         address nftContract,
-        uint256 _ticketPrice
+        uint8 _ticketPrice
     ) {
         _transferOwnership(_owner);
 
@@ -69,13 +69,13 @@ contract offscriptPayment is Ownable {
         ticketPrice = _ticketPrice;
     }
 
-    function checkForNft(address owner) public returns (uint256,uint256) {
-        uint256 num = _nftContract.balanceOf(owner);
-        uint256 discount = 0;
-        uint256 tokenId = 0;
-        for (uint256 i = 0; i < num; i++) {
-            uint256 aux = _nftContract.tokenOfOwnerByIndex(owner, i);
-            uint256 aux2 = _nftContract.traits(aux);
+    function checkForNft(address owner) public returns (uint8,uint8) {
+        uint8 num = _nftContract.balanceOf(owner);
+        uint8 discount = 0;
+        uint8 tokenId = 0;
+        for (uint8 i = 0; i < num; i++) {
+            uint8 aux = _nftContract.tokenOfOwnerByIndex(owner, i);
+            uint8 aux2 = _nftContract.traits(aux);
             if(aux2 > discount){
                 discount = aux2;
                 tokenId = aux;
@@ -90,8 +90,8 @@ contract offscriptPayment is Ownable {
             oracles[address(0x0)]
         );
 
-        uint256 decimals = 18;
-        uint256 oracleDecimals = oracle.decimals();
+        uint8 decimals = 18;
+        uint8 oracleDecimals = oracle.decimals();
 
         (uint discount, uint nftId) = checkForNft(msg.sender);
 
@@ -99,21 +99,21 @@ contract offscriptPayment is Ownable {
         (
             uint80 roundID,
             int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
+            uint8 startedAt,
+            uint8 timeStamp,
             uint80 answeredInRound
         ) = oracle.latestRoundData();
 
         //Falta aplicar o desconto
-        uint discount = discount * 10**decimals;
+        discount = discount * 10**(decimals-2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = ((ticketPrice * 10**oracleDecimals) / price) *
+        uint8 amount = ((ticketPrice * 10**oracleDecimals) / price) *
             10**(decimals - oracleDecimals);
 
-        amount = amount *
+        uint8 discountInValue = amount * discount;
 
-        emit Payment(msg.sender, amount, nftId, 0);
+        emit Payment(msg.sender, amount-discountInValue, nftId, 0);
     }
 
     function paytWithERC20(address _token) external {
@@ -122,8 +122,8 @@ contract offscriptPayment is Ownable {
 
         require(address(oracle) != address(0x0), "token not supported");
 
-        uint256 decimals = IERC20(_token).decimals();
-        uint256 oracleDecimals = oracle.decimals();
+        uint8 decimals = IERC20(_token).decimals();
+        uint8 oracleDecimals = oracle.decimals();
 
         (uint discount, uint nftId) = checkForNft(msg.sender);
 
@@ -131,18 +131,24 @@ contract offscriptPayment is Ownable {
         (
             uint80 roundID,
             int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
+            uint8 startedAt,
+            uint8 timeStamp,
             uint80 answeredInRound
         ) = oracle.latestRoundData();
 
+
+        discount = discount * 10**(decimals-2);
+        
+
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = ((ticketPrice * 10**oracleDecimals) *
+        uint8 amount = ((ticketPrice * 10**oracleDecimals) *
             10**(decimals - oracleDecimals)) / price;
+    
+        uint8 discountInValue = amount * discount;
 
-        IERC20(_token).safeTransferFrom(msg.sender, address(this), amount);
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), amount-discountInValue);
 
-        emit Payment(msg.sender, amount, nftId, _token);
+        emit Payment(msg.sender, amount-discountInValue, nftId, _token);
     }
 
     //Caso erro - abortar revert ou require
