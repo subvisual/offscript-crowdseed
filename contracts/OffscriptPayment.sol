@@ -105,9 +105,13 @@ contract offscriptPayment is Ownable {
         ) = oracle.latestRoundData();
 
         //Falta aplicar o desconto
+        uint discount = discount * 10**decimals;
+
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
         uint256 amount = ((ticketPrice * 10**oracleDecimals) / price) *
             10**(decimals - oracleDecimals);
+
+        amount = amount *
 
         emit Payment(msg.sender, amount, nftId, 0);
     }
