@@ -1,6 +1,5 @@
 {
-<<<<<<< HEAD
-  "name": "offscript",
+  "name": "@offscript-nft/contracts",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -29,7 +28,6 @@
     "ethereum-waffle": "^3.4.0",
     "ethers": "^5.5.4",
     "hardhat": "^2.8.3",
-    "hardhat-deploy": "^0.10.5",
     "keccak256": "^1.0.6",
     "mocha": "^7.2.0",
     "prettier": "^2.5.1",
@@ -38,29 +36,24 @@
     "ts-node": "^10.5.0",
     "typechain": "^6.0.3",
     "typescript": "^4.5.5"
-=======
-  "name": "@offscript-nft/monorepo",
-  "private": true,
-  "workspaces": {
-    "packages": [
-      "packages/contracts",
-      "packages/web"
-    ],
-    "nohoist": [
-      "**/@nomiclabs/**",
-      "**/@typechain/**",
-      "**/typechain/**",
-      "**/@rari-capital/**",
-      "**/typescript",
-      "**/ts-node"
-    ]
->>>>>>> master
   },
   "scripts": {
-    "contracts:dev": "yarn workspace @offscript-nft/contracts dev",
-    "contracts:export": "yarn workspace @offscript-nft/contracts export",
-    "contracts:build": "yarn workspace @offscript-nft/contracts build",
-    "web:dev": "yarn workspace @offscript-nft/web start",
-    "web:deploy": "yarn workspace @offscript-nft/web deploy"
+    "test": "mocha",
+    "compile": "hardhat compile",
+    "dev": "hardhat node"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/subvisual/offscript.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/subvisual/offscript/issues"
+  },
+  "homepage": "https://github.com/subvisual/offscript#readme",
+  "devDependencies": {
+    "@types/jest": "^27.4.0"
   }
 }
