@@ -13,13 +13,30 @@ import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
 
 contract OffscriptPayment is Ownable {
+    //
+    // Libraries
+    //
     using SafeERC20 for IERC20;
 
-    IERC20 public _dai;
-    IERC20 public _usdt;
-    IERC20 public _usdc;
+    //
+    // Events
+    //
+    //Save some info?
+    event Payment(
+        address payer,
+        uint256 amount,
+        uint256 nftId,
+        address tokenId
+    );
 
-    address _nftContract;
+    //
+    // State
+    //
+    IERC20 public dai;
+    IERC20 public usdt;
+    IERC20 public usdc;
+
+    IOffscriptNFT nft;
 
     uint256 ticketPrice;
 
@@ -36,35 +53,24 @@ contract OffscriptPayment is Ownable {
     //USDT / USD  -  0x3E7d1eAB13ad0104d2750B8863b489D65364e32D
     //USDC / USD  -  0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6
 
-    //Save some info?
-    event Payment(
-        address payer,
-        uint256 amount,
-        uint256 nftId,
-        address tokenId
-    );
-
     constructor(
-        address _owner,
-        address _daiAddress,
-        address _usdtAddress,
-        address _usdcAddress,
+        IERC20 _dai,
+        IERC20 _usdt,
+        IERC20 _usdc,
         address oracleDai,
         address oracleEth,
         address oracleUsdt,
         address oracleUsdc,
         address nftContract,
         uint256 _ticketPrice
-    ) {
-        _transferOwnership(_owner);
-
+    ) Ownable(msg.sender) {
         //nftContract
         _nftContract = nftContract;
 
         //Mock tokens
-        _dai = IERC20(_daiAddress);
-        _usdt = IERC20(_usdtAddress);
-        _usdc = IERC20(_usdcAddress);
+        dai = _daiAddress;
+        usdt = _usdtAddress;
+        usdc = _usdcAddress;
 
         oracles[address(_dai)] = oracleDai;
         oracles[address(_usdt)] = oracleUsdt;

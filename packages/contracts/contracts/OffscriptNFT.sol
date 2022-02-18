@@ -7,9 +7,16 @@ import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
+import {IOffscriptNFT} from "./IOffscriptNFT.sol";
+
 import "hardhat/console.sol";
 
-contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
+contract OffscriptNFT is
+    ERC721URIStorage,
+    ERC721Enumerable,
+    AccessControl,
+    IOffscriptNFT
+{
     //
     // Constants
     //
