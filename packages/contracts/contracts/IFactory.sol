@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.11;
 
-interface Factory {
+interface IFactory {
 
   /**
     * @dev Mints asset(s) in accordance to a specific address with a particular "option".

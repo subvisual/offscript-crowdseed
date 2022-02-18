@@ -19,7 +19,7 @@
   "scripts": {
     "contracts:dev": "yarn workspace @offscript-nft/contracts dev",
     "contracts:export": "yarn workspace @offscript-nft/contracts export",
-    "contracts:build": "yarn workspace @offscript-nft/contracts build",
+    "contracts:compile": "yarn workspace @offscript-nft/contracts compile",
     "web:dev": "yarn workspace @offscript-nft/web start",
     "web:deploy": "yarn workspace @offscript-nft/web deploy",
     "test": "yarn workspace @offscript-nft/contracts test"

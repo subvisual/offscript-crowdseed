@@ -46,7 +46,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
     ) ERC721("OffscriptNFT", "OFFSCRIPT") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, msg.sender);
-    
+
         baseURI = _baseURI;
 
         totalPublicSupply = _publicSupply;
@@ -76,13 +76,6 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         uint8 discount = calculateDiscount(random);
 
         _mintWithDiscount(_address, newItemId, discount);
-
-        console.log(
-            "An NFT w/ ID %s has been minted to %s with discount %s",
-            newItemId,
-            _address,
-            discount
-        );
 
         // Increment the counter for when the next NFT is minted.
         _idPublic.increment();
@@ -128,11 +121,9 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         returns (uint8 discount)
     {
         uint8 _random = random % publicSupply;
-        console.log("Random is %s", _random);
         // 10 -> 10% // 15 -> 20% // 15 -> 30% // 4 -> 40% // 1 -> 50%
         uint8 i = 0;
         while (i < availablePerTrait.length) {
-            console.log("Random inside is %s", _random);
             bool aux = (_random <= availablePerTrait[i] &&
                 availablePerTrait[i] > 0);
             if (aux) {
