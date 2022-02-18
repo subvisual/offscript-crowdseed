@@ -11,9 +11,10 @@ const func: DeployFunction = async function (hre) {
   await deploy("OffscriptNFT", {
     from: deployer,
     args: [
+      "OffscriptNFT",
+      "OFFSCRIPT",
       "https://nft.offscript.com/assets/",
       40,
-      110,
       [10, 25, 40, 100],
       [23, 10, 5, 2],
     ],
