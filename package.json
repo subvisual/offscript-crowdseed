@@ -22,6 +22,7 @@
     "contracts:compile": "yarn workspace @offscript-nft/contracts compile",
     "web:dev": "yarn workspace @offscript-nft/web start",
     "web:deploy": "yarn workspace @offscript-nft/web deploy",
+    "lint": "yarn workspace @offscript-nft/contracts lint",
     "test": "yarn workspace @offscript-nft/contracts test"
   }
 }
