@@ -38,7 +38,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
     Counters.Counter private _idPublic;
 
     // token => discount
-    mapping(uint8 => uint8) public traits;
+    mapping(uint256 => uint256) public traits;
 
     string public baseURI;
 
@@ -97,21 +97,21 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         require(publicSupply > 0, "Depleted");
         require(_idPublic.current() <= 45, "Maximum NFT's already minted");
 
+        // increment first, to start at ID #1
+        _idPublic.increment();
+
+        // Get the current tokenId, this starts at 0.
+        uint256 newItemId = _idPublic.current();
+
         uint8 random = uint8(
             uint256(
                 keccak256(abi.encodePacked(block.difficulty, block.timestamp))
             )
         );
 
-        // Get the current tokenId, this starts at 0.
-        uint8 newItemId = uint8(_idPublic.current());
-
         uint8 discount = calculateDiscount(random);
 
         _mintWithDiscount(_address, newItemId, discount);
-
-        // Increment the counter for when the next NFT is minted.
-        _idPublic.increment();
     }
 
     function mintPrivate(
@@ -130,9 +130,12 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         require(internalSupply >= length && internalSupply > 0, "Depleted");
 
         for (uint8 i = 0; i < length; i++) {
+            // increment first, since IDs start at #1
+            _idPrivate.increment();
+
             _mintWithDiscount(
                 _addresses[i],
-                uint8(_idPrivate.current() + totalPublicSupply),
+                _idPrivate.current() + totalPublicSupply,
                 discounts[i]
             );
             _idPrivate.increment();
@@ -146,7 +149,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
 
     function _mintWithDiscount(
         address _owner,
-        uint8 _id,
+        uint256 _id,
         uint8 _discount
     ) internal {
         traits[_id] = _discount;

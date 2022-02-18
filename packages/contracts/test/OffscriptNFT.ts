@@ -21,10 +21,10 @@ describe("OffscriptNFT", () => {
 
     nft = (await OffscriptNFT.deploy(
       "https://our-url.com/nfts/",
-      45,
-      105,
-      [10, 20, 30, 40, 50],
-      [10, 15, 15, 4, 1]
+      40,
+      110,
+      [10, 25, 40, 100],
+      [23, 10, 5, 2]
     )) as OffscriptNFT;
   });
 
@@ -38,31 +38,30 @@ describe("OffscriptNFT", () => {
     });
 
     it("sets the correct public supply", async () => {
-      expect(await nft.publicSupply()).to.equal(45);
+      expect(await nft.publicSupply()).to.equal(40);
     });
 
     it("sets the correct internal supply", async () => {
-      expect(await nft.internalSupply()).to.equal(105);
+      expect(await nft.internalSupply()).to.equal(110);
     });
 
     it("sets the correct discounts supply", async () => {
       expect(await nft.discounts(0)).to.equal(10);
-      expect(await nft.discounts(1)).to.equal(20);
-      expect(await nft.discounts(2)).to.equal(30);
-      expect(await nft.discounts(3)).to.equal(40);
-      expect(await nft.discounts(4)).to.equal(50);
+      expect(await nft.discounts(1)).to.equal(25);
+      expect(await nft.discounts(2)).to.equal(40);
+      expect(await nft.discounts(3)).to.equal(100);
 
-      expect(await nft.availablePerTrait(0)).to.equal(10);
-      expect(await nft.availablePerTrait(1)).to.equal(15);
-      expect(await nft.availablePerTrait(2)).to.equal(15);
-      expect(await nft.availablePerTrait(3)).to.equal(4);
-      expect(await nft.availablePerTrait(4)).to.equal(1);
+      expect(await nft.availablePerTrait(0)).to.equal(23);
+      expect(await nft.availablePerTrait(1)).to.equal(10);
+      expect(await nft.availablePerTrait(2)).to.equal(5);
+      expect(await nft.availablePerTrait(3)).to.equal(2);
     });
   });
 
   describe("mintPublic", () => {
     it("can mint 45 NFTs", async () => {
-      for (let i = 0; i < 45; ++i) {
+      const supply = await nft.publicSupply();
+      for (let i = 0; i < supply; ++i) {
         await nft.connect(owner).mintPublic(alice.address);
       }
 
@@ -72,8 +71,9 @@ describe("OffscriptNFT", () => {
       ).to.be.revertedWith("Depleted");
     });
 
-    it("after the 45 mints, all availablePerTrait values are 0", async () => {
-      for (let i = 0; i < 45; ++i) {
+    it("after all public mints, all availablePerTrait values are 0", async () => {
+      const supply = await nft.publicSupply();
+      for (let i = 0; i < supply; ++i) {
         await nft.connect(owner).mintPublic(alice.address);
       }
 
@@ -81,24 +81,24 @@ describe("OffscriptNFT", () => {
       expect(await nft.availablePerTrait(1)).to.equal(0);
       expect(await nft.availablePerTrait(2)).to.equal(0);
       expect(await nft.availablePerTrait(3)).to.equal(0);
-      expect(await nft.availablePerTrait(4)).to.equal(0);
     });
   });
 
-  describe("mintInternal", () => {
-    it("can mint 105 NFTs", async () => {
-      for (let i = 0; i < 105; ++i) {
-        await nft.connect(owner).mintInternal([alice.address], [10]);
+  describe("mintPrivate", () => {
+    it("can mint 110 NFTs", async () => {
+      const supply = await nft.internalSupply();
+      for (let i = 0; i < supply; ++i) {
+        await nft.connect(owner).mintPrivate([alice.address], [10]);
       }
 
       // the 106th must fail
       await expect(
-        nft.connect(owner).mintInternal([alice.address], [10])
+        nft.connect(owner).mintPrivate([alice.address], [10])
       ).to.be.revertedWith("Depleted");
     });
 
     it("can only be called by the owner", async () => {
-      const action = nft.connect(alice).mintInternal([alice.address], [10]);
+      const action = nft.connect(alice).mintPrivate([alice.address], [10]);
 
       await expect(action).to.be.reverted;
     });
@@ -107,9 +107,9 @@ describe("OffscriptNFT", () => {
       it("checks if URI is correct", async () => {
         nft.connect(owner).mintPublic(alice.address);
 
-        const uri = await nft.tokenURI(0);
+        const uri = await nft.tokenURI(1);
 
-        expect(uri).to.equal("https://our-url.com/nfts/0");
+        expect(uri).to.equal("https://our-url.com/nfts/1");
       });
 
       it("does not allow anyone but the owner to change the baseURI", async () => {
