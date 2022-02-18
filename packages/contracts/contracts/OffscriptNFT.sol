@@ -3,18 +3,11 @@ pragma solidity ^0.8.11;
 
 // We first import some OpenZeppelin Contracts.
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-import "hardhat/console.sol";
+import {Trust} from "./Trust.sol";
 
-contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
-    //
-    // Constants
-    //
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
-
+contract OffscriptNFT is ERC721URIStorage, Trust {
     //
     // Events
     //
@@ -52,10 +45,7 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
         uint8 _remainingPublicSupply,
         uint8[] memory _discounts,
         uint8[] memory _availablePerTrait
-    ) ERC721(_name, _symbol) {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, msg.sender);
-
+    ) ERC721(_name, _symbol) Trust(msg.sender) {
         baseURI = _baseURI;
 
         totalPublicSupply = _remainingPublicSupply;
@@ -75,16 +65,13 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
     function tokenURI(uint256 tokenId)
         public
         view
-        override(ERC721, ERC721URIStorage)
+        override(ERC721URIStorage)
         returns (string memory)
     {
         return ERC721URIStorage.tokenURI(tokenId);
     }
 
-    function _burn(uint256 tokenId)
-        internal
-        override(ERC721, ERC721URIStorage)
-    {
+    function _burn(uint256 tokenId) internal override(ERC721URIStorage) {
         ERC721URIStorage._burn(tokenId);
     }
 
@@ -94,18 +81,9 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
 
     function setTokenURI(uint256 tokenId, string memory _tokenURI)
         external
-        onlyRole(DEFAULT_ADMIN_ROLE)
+        requiresTrust
     {
         _setTokenURI(tokenId, _tokenURI);
-    }
-
-    /**
-     * Whitelists a new minter
-     *
-     * @param _minter The new minter
-     */
-    function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        grantRole(MINTER_ROLE, _minter);
     }
 
     /**
@@ -115,17 +93,14 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
      *
      * @param _newBaseURI new base URI for the token
      */
-    function setBaseURI(string memory _newBaseURI)
-        public
-        onlyRole(DEFAULT_ADMIN_ROLE)
-    {
+    function setBaseURI(string memory _newBaseURI) public requiresTrust {
         baseURI = _newBaseURI;
 
         emit BaseURIUpdated(_newBaseURI);
     }
 
     // A function our user will hit to get their NFT.
-    function mintPublic(address _address) public onlyRole(MINTER_ROLE) {
+    function mintPublic(address _address) public requiresTrust {
         require(remainingPublicSupply > 0, "Depleted");
 
         // IDs from from #1 to #totalPublicSupply
@@ -135,19 +110,27 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
 
         uint8 random = uint8(
             uint256(
-                keccak256(abi.encodePacked(block.difficulty, block.timestamp))
+                keccak256(
+                    abi.encodePacked(
+                        msg.sender,
+                        tx.origin,
+                        block.difficulty,
+                        block.timestamp
+                    )
+                )
             )
         );
 
         uint8 discount = calculateDiscount(random);
 
         _mintWithDiscount(_address, newItemId, discount);
+        remainingPublicSupply--;
     }
 
     function mintPrivate(
         address[] calldata _addresses,
         uint8[] calldata _discounts
-    ) external onlyRole(MINTER_ROLE) {
+    ) external requiresTrust {
         require(
             _addresses.length == _discounts.length,
             "Arrays size must be the same"
@@ -177,19 +160,21 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
         _safeMint(_owner, _id);
     }
 
-    function calculateDiscount(uint8 random) internal returns (uint8 discount) {
-        uint8 _random = random % remainingPublicSupply;
+    function calculateDiscount(uint8 _random)
+        internal
+        returns (uint8 discount)
+    {
+        _random %= remainingPublicSupply;
 
         uint8 i = 0;
-        while (i < availablePerTrait.length) {
-            bool aux = (_random <= availablePerTrait[i] &&
-                availablePerTrait[i] > 0);
-            if (aux) {
-                remainingPublicSupply -= 1;
-                availablePerTrait[i] -= 1;
+        uint8 length = uint8(availablePerTrait.length);
+        while (i < length) {
+            uint8 available = availablePerTrait[i];
+            if (_random < available) {
+                availablePerTrait[i]--;
                 return discounts[i];
             } else {
-                _random -= availablePerTrait[i];
+                _random -= available;
             }
             i++;
         }
@@ -204,7 +189,7 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
         address from,
         address to,
         uint256 amount
-    ) internal override(ERC721, ERC721Enumerable) {
+    ) internal override(ERC721) {
         super._beforeTokenTransfer(from, to, amount);
     }
 
@@ -212,7 +197,7 @@ contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
         public
         view
         virtual
-        override(ERC721, ERC721Enumerable, AccessControl)
+        override(ERC721)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
