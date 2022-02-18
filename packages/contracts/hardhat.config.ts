@@ -4,6 +4,7 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-deploy";
+import "hardhat-gas-reporter";
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();
@@ -16,7 +17,15 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 const { DEV_MNEMONIC } = process.env;
 
 const config = {
-  solidity: "0.8.11",
+  solidity: {
+    version: "0.8.11",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 300,
+      },
+    },
+  },
   networks: {
     hardhat: {
       accounts: {
@@ -26,6 +35,11 @@ const config = {
   },
   namedAccounts: {
     deployer: 0,
+  },
+  gasReporter: {
+    enabled: process.env.REPORT_GAS ? true : false,
+    gasPrice: 100,
+    currency: "USD",
   },
 };
 

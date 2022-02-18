@@ -80,6 +80,15 @@ describe("OffscriptNFT", () => {
       expect(await nft.availablePerTrait(2)).to.equal(0);
       expect(await nft.availablePerTrait(3)).to.equal(0);
     });
+
+    it("after all public mints, remaining public supply is 0", async () => {
+      const supply = await nft.totalPublicSupply();
+      for (let i = 0; i < supply; ++i) {
+        await nft.mintPublic(alice.address);
+      }
+
+      expect(await nft.remainingPublicSupply()).to.equal(0);
+    });
   });
 
   describe("mintPrivate", () => {
