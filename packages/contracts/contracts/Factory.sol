@@ -2,7 +2,8 @@
 pragma solidity ^0.8.11;
 
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import {IFactory} from "./";
+import {IFactory} from "./IFactory.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 interface IOffscriptNFT {
     function mintPublic(
@@ -14,8 +15,10 @@ contract Factory is Ownable, IFactory {
     string public baseURI;
     IOffscriptNFT nft;
 
+    event BaseURIUpdated(string _baseURI);
+
     constructor(string memory _baseURI, address _address){
-        this.baseURI = _baseURI;
+        baseURI = _baseURI;
         nft = IOffscriptNFT(_address);
     }
 
@@ -25,12 +28,12 @@ contract Factory is Ownable, IFactory {
         }
     }
 
-    function tokenURI(uint8 _optionId) public view returns (string){
+    function tokenURI(uint256 _optionId) public view returns (string memory){
         bytes(baseURI).length > 0
                 ? string(
                     abi.encodePacked(
                         baseURI,
-                        _optionId.toString()
+                        Strings.toString(_optionId)
                     )
                 )
                 : "";

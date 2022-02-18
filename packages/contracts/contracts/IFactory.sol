@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.11;
 
-interface Factory {
+interface IFactory {
 
   /**
     * @dev Mints asset(s) in accordance to a specific address with a particular "option".
@@ -9,7 +9,7 @@ interface Factory {
     * @param _optionId the option id
     * @param _toAddress address of the future owner of the asset(s)
     */
-  function mint(uint256 _optionId, address _toAddress) external;
+  function mint(uint8 _optionId, address _toAddress) external;
 
   /**
    * @dev Returns a URL specifying some metadata about the option. This metadata can be of the
