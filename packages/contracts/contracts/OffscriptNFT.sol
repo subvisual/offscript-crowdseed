@@ -2,22 +2,14 @@
 pragma solidity ^0.8.11;
 
 // We first import some OpenZeppelin Contracts.
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
-import "hardhat/console.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {ERC721Enumerable} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-// We inherit the contract we imported. This means we'll have access
-// to the inherited contract's methods.
-contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
-    //
-    // Libs
-    //
-    using Counters for Counters.Counter;
+import "hardhat/console.sol";
 
+contract OffscriptNFT is ERC721URIStorage, ERC721Enumerable, AccessControl {
     //
     // Constants
     //
@@ -26,26 +18,24 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
     //
     // Events
     //
+
+    /// Emitted when the base URI changes
     event BaseURIUpdated(string newBaseURI);
 
     //
     // State
     //
 
-    // private ID counter
-    Counters.Counter private _idPrivate;
-    // public ID counter
-    Counters.Counter private _idPublic;
-
     // token => discount
     mapping(uint256 => uint256) public traits;
 
+    /// Base URI for all NFTs
     string public baseURI;
 
     //Supplies
-    uint8 immutable totalPublicSupply;
-    uint8 public publicSupply;
-    uint8 public internalSupply;
+    uint8 public immutable totalPublicSupply;
+    uint8 public remainingPublicSupply;
+    uint8 public nextPrivateID;
 
     uint8[] public discounts;
     uint8[] public availablePerTrait;
@@ -56,33 +46,75 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
 
     // We need to pass the name of our NFTs token and its symbol.
     constructor(
+        string memory _name,
+        string memory _symbol,
         string memory _baseURI,
-        uint8 _publicSupply,
-        uint8 _internalSupply,
+        uint8 _remainingPublicSupply,
         uint8[] memory _discounts,
         uint8[] memory _availablePerTrait
-    ) ERC721("OffscriptNFT", "OFFSCRIPT") {
+    ) ERC721(_name, _symbol) {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, msg.sender);
 
         baseURI = _baseURI;
 
-        totalPublicSupply = _publicSupply;
-        publicSupply = _publicSupply;
-        internalSupply = _internalSupply;
+        totalPublicSupply = _remainingPublicSupply;
+        remainingPublicSupply = _remainingPublicSupply;
+        nextPrivateID = totalPublicSupply + 1;
 
         discounts = _discounts;
         availablePerTrait = _availablePerTrait;
+
+        emit BaseURIUpdated(_baseURI);
+    }
+
+    //
+    // ERC721
+    //
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721, ERC721URIStorage)
+        returns (string memory)
+    {
+        return ERC721URIStorage.tokenURI(tokenId);
+    }
+
+    function _burn(uint256 tokenId)
+        internal
+        override(ERC721, ERC721URIStorage)
+    {
+        ERC721URIStorage._burn(tokenId);
     }
 
     //
     // Public API
     //
 
+    function setTokenURI(uint256 tokenId, string memory _tokenURI)
+        external
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        _setTokenURI(tokenId, _tokenURI);
+    }
+
+    /**
+     * Whitelists a new minter
+     *
+     * @param _minter The new minter
+     */
     function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, _minter);
     }
 
+    /**
+     * Updates the base URI
+     *
+     * @notice Only callable by an authorized operator
+     *
+     * @param _newBaseURI new base URI for the token
+     */
     function setBaseURI(string memory _newBaseURI)
         public
         onlyRole(DEFAULT_ADMIN_ROLE)
@@ -94,14 +126,12 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
 
     // A function our user will hit to get their NFT.
     function mintPublic(address _address) public onlyRole(MINTER_ROLE) {
-        require(publicSupply > 0, "Depleted");
-        require(_idPublic.current() <= 45, "Maximum NFT's already minted");
+        require(remainingPublicSupply > 0, "Depleted");
 
-        // increment first, to start at ID #1
-        _idPublic.increment();
-
-        // Get the current tokenId, this starts at 0.
-        uint256 newItemId = _idPublic.current();
+        // IDs from from #1 to #totalPublicSupply
+        uint256 newItemId = uint256(
+            totalPublicSupply - remainingPublicSupply + 1
+        );
 
         uint8 random = uint8(
             uint256(
@@ -123,23 +153,14 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
             "Arrays size must be the same"
         );
         require(_addresses.length > 0, "Array must be greater than 0");
-        // require(_idPrivate.current()<=105, "Maximum NFT's already minted");
 
         uint8 length = uint8(_addresses.length);
 
-        require(internalSupply >= length && internalSupply > 0, "Depleted");
-
         for (uint8 i = 0; i < length; i++) {
-            // increment first, since IDs start at #1
-            _idPrivate.increment();
+            uint256 newItemID = uint256(nextPrivateID);
 
-            _mintWithDiscount(
-                _addresses[i],
-                _idPrivate.current() + totalPublicSupply,
-                discounts[i]
-            );
-            _idPrivate.increment();
-            internalSupply -= 1;
+            _mintWithDiscount(_addresses[i], newItemID, discounts[i]);
+            nextPrivateID++;
         }
     }
 
@@ -157,14 +178,14 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
     }
 
     function calculateDiscount(uint8 random) internal returns (uint8 discount) {
-        uint8 _random = random % publicSupply;
-        // 10 -> 10% // 15 -> 20% // 15 -> 30% // 4 -> 40% // 1 -> 50%
+        uint8 _random = random % remainingPublicSupply;
+
         uint8 i = 0;
         while (i < availablePerTrait.length) {
             bool aux = (_random <= availablePerTrait[i] &&
                 availablePerTrait[i] > 0);
             if (aux) {
-                publicSupply -= 1;
+                remainingPublicSupply -= 1;
                 availablePerTrait[i] -= 1;
                 return discounts[i];
             } else {
