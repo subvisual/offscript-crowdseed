@@ -1,44 +1,4 @@
 {
-<<<<<<< HEAD
-  "name": "offscript",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "dependencies": {
-    "@chainlink/contracts": "^0.3.1",
-    "@ethersproject/abi": "^5.0.0",
-    "@ethersproject/bytes": "^5.0.0",
-    "@ethersproject/providers": "^5.0.0",
-    "@nomiclabs/hardhat-ethers": "^2.0.2",
-    "@nomiclabs/hardhat-waffle": "^2.0.1",
-    "@nomiclabs/hardhat-web3": "^2.0.0",
-    "@openzeppelin/contracts": "4.5.0",
-    "@openzeppelin/hardhat-upgrades": "^1.10.0",
-    "@rari-capital/solmate": "^6.2.0",
-    "@typechain/ethers-v5": "^8.0.3",
-    "@typechain/hardhat": "^3.0.0",
-    "@types/chai": "^4.3.0",
-    "@types/mocha": "^9.1.0",
-    "@types/node": "^17.0.16",
-    "@typescript-eslint/eslint-plugin": "^5.11.0",
-    "@typescript-eslint/parser": "^5.11.0",
-    "chai": "^4.3.6",
-    "docenv": "^2.0.6",
-    "eslint": "^8.8.0",
-    "eslint-config-prettier": "^8.3.0",
-    "ethereum-waffle": "^3.4.0",
-    "ethers": "^5.5.4",
-    "hardhat": "^2.8.3",
-    "hardhat-deploy": "^0.10.5",
-    "keccak256": "^1.0.6",
-    "mocha": "^7.2.0",
-    "prettier": "^2.5.1",
-    "prettier-plugin-solidity": "^1.0.0-beta.19",
-    "solhint": "^3.3.6",
-    "ts-node": "^10.5.0",
-    "typechain": "^6.0.3",
-    "typescript": "^4.5.5"
-=======
   "name": "@offscript-nft/monorepo",
   "private": true,
   "workspaces": {
@@ -54,13 +14,13 @@
       "**/typescript",
       "**/ts-node"
     ]
->>>>>>> master
   },
   "scripts": {
     "contracts:dev": "yarn workspace @offscript-nft/contracts dev",
     "contracts:export": "yarn workspace @offscript-nft/contracts export",
     "contracts:build": "yarn workspace @offscript-nft/contracts build",
     "web:dev": "yarn workspace @offscript-nft/web start",
-    "web:deploy": "yarn workspace @offscript-nft/web deploy"
+    "web:deploy": "yarn workspace @offscript-nft/web deploy",
+    "test": "yarn workspace @offscript-nft/contracts test"
   }
 }

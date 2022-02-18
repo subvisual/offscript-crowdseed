@@ -46,8 +46,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
     ) ERC721("OffscriptNFT", "OFFSCRIPT") {
         _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
         _setupRole(MINTER_ROLE, msg.sender);
-        //console.log("This is my NFT contract. Woah!");
-
+    
         baseURI = _baseURI;
 
         totalPublicSupply = _publicSupply;
@@ -58,14 +57,12 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         availablePerTrait = _availablePerTrait;
     }
 
-    function setMinter(address _minter) onlyRole(DEFAULT_ADMIN_ROLE) {
+    function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, _minter);
     }
 
     // A function our user will hit to get their NFT.
-    function mintPublic(
-        /* TODO address */
-    ) public onlyRole(MINTER_ROLE) {
+    function mintPublic(address _address) public onlyRole(MINTER_ROLE) {
         require(publicSupply > 0, "Depleted");
         require(_idPublic.current() <= 45, "Maximum NFT's already minted");
 
@@ -78,12 +75,12 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
 
         uint8 discount = calculateDiscount(random);
 
-        _mintWithDiscount(msg.sender, newItemId, discount);
+        _mintWithDiscount(_address, newItemId, discount);
 
         console.log(
             "An NFT w/ ID %s has been minted to %s with discount %s",
             newItemId,
-            msg.sender,
+            _address,
             discount
         );
 
@@ -149,23 +146,11 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         }
     }
 
-    function setBaseURI(string memory _newBaseURI) public onlyOwner {
+    function setBaseURI(string memory _newBaseURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
         baseURI = _newBaseURI;
 
         emit BaseURIUpdated(_newBaseURI);
     }
-
-    //
-    /*function tokenURI(uint256 tokenID) public view override(ERC721) returns (string memory) {
-      bytes(baseURI).length > 0
-                ? string(
-                    abi.encodePacked(
-                        baseURI,
-                        tokenID.toString()
-                    )
-                )
-                : "";
-    }*/
 
     function _baseURI() internal view override(ERC721) returns (string memory) {
         return baseURI;
@@ -184,7 +169,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         public
         view
         virtual
-        override(ERC721, ERC721Enumerable)
+        override(ERC721, ERC721Enumerable, AccessControl)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
