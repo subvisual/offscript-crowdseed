@@ -12,7 +12,8 @@
       "**/typechain/**",
       "**/@rari-capital/**",
       "**/typescript",
-      "**/ts-node"
+      "**/ts-node",
+      "@typescript-eslint/**"
     ]
   },
   "scripts": {

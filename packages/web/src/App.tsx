@@ -1,14 +1,9 @@
 import type { FC } from "react";
 
-import IndexView from "./views/IndexView";
-
-
 import "./App.css";
 
 const App: FC = () => {
-  return (
-    <></>
-  );
+  return <p>Hello</p>;
 };
 
 export default App;
