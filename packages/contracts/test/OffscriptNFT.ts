@@ -63,18 +63,18 @@ describe("OffscriptNFT", () => {
   describe("mintPublic", () => {
     it("can mint 45 NFTs", async () => {
       for (let i = 0; i < 45; ++i) {
-        await nft.connect(alice).mintPublic();
+        await nft.connect(alice).mintPublic(alice.address);
       }
 
       // the 46th must fail
-      await expect(nft.connect(alice).mintPublic()).to.be.revertedWith(
-        "Depleted"
-      );
+      await expect(
+        nft.connect(alice).mintPublic(alice.address)
+      ).to.be.revertedWith("Depleted");
     });
 
     it("after the 45 mints, all availablePerTrait values are 0", async () => {
       for (let i = 0; i < 45; ++i) {
-        await nft.connect(alice).mintPublic();
+        await nft.connect(alice).mintPublic(alice.address);
       }
 
       expect(await nft.availablePerTrait(0)).to.equal(0);
@@ -106,13 +106,12 @@ describe("OffscriptNFT", () => {
     });
 
     describe("check URI functions", () => {
-      
-      it("checks if URI is correct", async() => {
-        nft.connect(alice).mintPublic();
-        
+      it("checks if URI is correct", async () => {
+        nft.connect(alice).mintPublic(alice.address);
+
         const token_uri = await nft.tokenURI(0);
 
-        await expect(token_uri).to.equal('https://our-url.com/nfts/0')
+        await expect(token_uri).to.equal("https://omochaur-url.com/nfts/0");
       });
 
       it("does not allow anyone but the owner to change the baseURI", async () => {
@@ -121,7 +120,7 @@ describe("OffscriptNFT", () => {
         await expect(action).to.be.revertedWith(
           "Ownable: caller is not the owner"
         );
-      })
-    })
+      });
+    });
   });
 });

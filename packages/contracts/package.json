@@ -39,7 +39,7 @@
     "typescript": "^4.5.5"
   },
   "scripts": {
-    "test": "mocha",
+    "test": "hardhat test",
     "compile": "hardhat compile",
     "dev": "hardhat node"
   },

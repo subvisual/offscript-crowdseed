@@ -4,6 +4,7 @@ pragma solidity ^0.8.11;
 import "hardhat/console.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
@@ -121,7 +122,7 @@ contract OffscriptPayment is Ownable {
         emit Payment(msg.sender, amount-discountInValue, nftId, address(0));
     }
 
-    function paytWithERC20(address _token) external {
+    function payWithERC20(address _token) external {
         require(_token != address(0x0));
         AggregatorV3Interface oracle = AggregatorV3Interface(oracles[_token]);
 
