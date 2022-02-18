@@ -74,8 +74,8 @@ contract OffscriptPayment is Ownable {
         ticketPrice = _ticketPrice;
     }
 
-    function checkForNft(address owner) public returns (uint256,uint256) {
-        return (0,0);
+    function checkForNft(address owner) public returns (uint256, uint256) {
+        return (0, 0);
         // uint256 num = _nftContract.balanceOf(owner);
         // uint256 discount = 0;
         // uint256 tokenId = 0;
@@ -99,7 +99,7 @@ contract OffscriptPayment is Ownable {
         uint256 decimals = 18;
         uint256 oracleDecimals = oracle.decimals();
 
-        (uint discount, uint nftId) = checkForNft(msg.sender);
+        (uint256 discount, uint256 nftId) = checkForNft(msg.sender);
 
         // call oracle & compute price
         (
@@ -111,7 +111,7 @@ contract OffscriptPayment is Ownable {
         ) = oracle.latestRoundData();
 
         //Falta aplicar o desconto
-        discount = discount * 10**(decimals-2);
+        discount = discount * 10**(decimals - 2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
         uint256 amount = ((ticketPrice * 10**oracleDecimals) / uint256(price)) *
@@ -119,7 +119,7 @@ contract OffscriptPayment is Ownable {
 
         uint256 discountInValue = amount * discount;
 
-        emit Payment(msg.sender, amount-discountInValue, nftId, address(0));
+        emit Payment(msg.sender, amount - discountInValue, nftId, address(0));
     }
 
     function payWithERC20(address _token) external {
@@ -131,7 +131,7 @@ contract OffscriptPayment is Ownable {
         uint256 decimals = IERC20Metadata(_token).decimals();
         uint256 oracleDecimals = oracle.decimals();
 
-        (uint discount, uint nftId) = checkForNft(msg.sender);
+        (uint256 discount, uint256 nftId) = checkForNft(msg.sender);
 
         // call oracle & compute price
         (
@@ -142,9 +142,7 @@ contract OffscriptPayment is Ownable {
             uint256 answeredInRound
         ) = oracle.latestRoundData();
 
-
-        discount = discount * 10**(decimals-2);
-
+        discount = discount * 10**(decimals - 2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
         uint256 amount = ((ticketPrice * 10**oracleDecimals) *

@@ -13,14 +13,31 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 // We inherit the contract we imported. This means we'll have access
 // to the inherited contract's methods.
 contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
+    //
+    // Libs
+    //
+    using Counters for Counters.Counter;
+
+    //
+    // Constants
+    //
     bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
 
-    // Magic given to us by OpenZeppelin to help us keep track of tokenIds.
-    using Counters for Counters.Counter;
-    Counters.Counter private _idInside; // contador para os reservados
-    Counters.Counter private _idPublic; // contador dos minted aberto
+    //
+    // Events
+    //
+    event BaseURIUpdated(string newBaseURI);
 
-    // token to discount
+    //
+    // State
+    //
+
+    // private ID counter
+    Counters.Counter private _idPrivate;
+    // public ID counter
+    Counters.Counter private _idPublic;
+
+    // token => discount
     mapping(uint256 => uint256) public traits;
 
     string public baseURI;
@@ -30,11 +47,12 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
     uint8 public publicSupply;
     uint8 public internalSupply;
 
-    // { 10 => 10, 20 => 15, 30 => 15, 50 => 4, 100 => 1}
     uint8[] public discounts;
     uint8[] public availablePerTrait;
 
-     event BaseURIUpdated(string newBaseURI);
+    //
+    // Constructor
+    //
 
     // We need to pass the name of our NFTs token and its symbol.
     constructor(
@@ -57,8 +75,21 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         availablePerTrait = _availablePerTrait;
     }
 
+    //
+    // Public API
+    //
+
     function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
         grantRole(MINTER_ROLE, _minter);
+    }
+
+    function setBaseURI(string memory _newBaseURI)
+        public
+        onlyRole(DEFAULT_ADMIN_ROLE)
+    {
+        baseURI = _newBaseURI;
+
+        emit BaseURIUpdated(_newBaseURI);
     }
 
     // A function our user will hit to get their NFT.
@@ -72,18 +103,18 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         // Get the current tokenId, this starts at 0.
         uint256 newItemId = _idPublic.current();
 
-        uint8 random = uint8(uint256(
-            keccak256(abi.encodePacked(block.difficulty, block.timestamp))
-        ));
-
+        uint8 random = uint8(
+            uint256(
+                keccak256(abi.encodePacked(block.difficulty, block.timestamp))
+            )
+        );
 
         uint8 discount = calculateDiscount(random);
 
         _mintWithDiscount(_address, newItemId, discount);
-
     }
 
-    function mintInternal(
+    function mintPrivate(
         address[] calldata _addresses,
         uint8[] calldata _discounts
     ) external onlyRole(MINTER_ROLE) {
@@ -92,7 +123,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
             "Arrays size must be the same"
         );
         require(_addresses.length > 0, "Array must be greater than 0");
-        // require(_idInside.current()<=105, "Maximum NFT's already minted");
+        // require(_idPrivate.current()<=105, "Maximum NFT's already minted");
 
         uint8 length = uint8(_addresses.length);
 
@@ -100,16 +131,21 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
 
         for (uint8 i = 0; i < length; i++) {
             // increment first, since IDs start at #1
-            _idInside.increment();
+            _idPrivate.increment();
 
             _mintWithDiscount(
                 _addresses[i],
-                _idInside.current() + totalPublicSupply,
+                _idPrivate.current() + totalPublicSupply,
                 discounts[i]
             );
+            _idPrivate.increment();
             internalSupply -= 1;
         }
     }
+
+    //
+    // Internal API
+    //
 
     function _mintWithDiscount(
         address _owner,
@@ -120,10 +156,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         _safeMint(_owner, _id);
     }
 
-    function calculateDiscount(uint8 random)
-        internal
-        returns (uint8 discount)
-    {
+    function calculateDiscount(uint8 random) internal returns (uint8 discount) {
         uint8 _random = random % publicSupply;
         // 10 -> 10% // 15 -> 20% // 15 -> 30% // 4 -> 40% // 1 -> 50%
         uint8 i = 0;
@@ -139,12 +172,6 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
             }
             i++;
         }
-    }
-
-    function setBaseURI(string memory _newBaseURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        baseURI = _newBaseURI;
-
-        emit BaseURIUpdated(_newBaseURI);
     }
 
     function _baseURI() internal view override(ERC721) returns (string memory) {

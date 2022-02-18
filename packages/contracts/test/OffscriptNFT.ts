@@ -84,21 +84,21 @@ describe("OffscriptNFT", () => {
     });
   });
 
-  describe("mintInternal", () => {
+  describe("mintPrivate", () => {
     it("can mint 110 NFTs", async () => {
       const supply = await nft.internalSupply();
       for (let i = 0; i < supply; ++i) {
-        await nft.connect(owner).mintInternal([alice.address], [10]);
+        await nft.connect(owner).mintPrivate([alice.address], [10]);
       }
 
       // the 106th must fail
       await expect(
-        nft.connect(owner).mintInternal([alice.address], [10])
+        nft.connect(owner).mintPrivate([alice.address], [10])
       ).to.be.revertedWith("Depleted");
     });
 
     it("can only be called by the owner", async () => {
-      const action = nft.connect(alice).mintInternal([alice.address], [10]);
+      const action = nft.connect(alice).mintPrivate([alice.address], [10]);
 
       await expect(action).to.be.reverted;
     });

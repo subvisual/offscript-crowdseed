@@ -41,7 +41,8 @@
   "scripts": {
     "test": "hardhat test",
     "compile": "hardhat compile",
-    "dev": "hardhat node"
+    "dev": "hardhat node",
+    "lint": "solhint contracts/**.sol && prettier --check . contracts/**/*.sol"
   },
   "repository": {
     "type": "git",
