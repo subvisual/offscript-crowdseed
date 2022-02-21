@@ -41,6 +41,9 @@ const config = {
     gasPrice: 100,
     currency: "USD",
   },
+  mocha: {
+    timeout: 2000000,
+  },
 };
 
 export default config;

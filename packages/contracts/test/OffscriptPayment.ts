@@ -2,8 +2,12 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { OffscriptPayment, ERC20 } from "../typechain-types";
-import { ERC20__factory } from "../typechain-types";
+import type {
+  OffscriptPayment,
+  IERC20,
+  OffscriptNFT,
+} from "../typechain-types";
+import { IERC20__factory } from "../typechain-types";
 
 import * as ForkHelpers from "./forkHelpers";
 
@@ -16,20 +20,73 @@ describe("OffscriptPayment", () => {
   let bob: SignerWithAddress;
 
   let payment: OffscriptPayment;
-  let usdc: ERC20;
+  let usdc: IERC20;
+  let dai: IERC20;
+  let usdt: IERC20;
 
-  // beforeEach(async () => {
-  //   [owner, alice, bob] = await ethers.getSigners();
+  let nft: OffscriptNFT;
 
-  //   let OffscriptPayment = await ethers.getContractFactory("OffscriptPayment");
+  const config = {
+    // mainnet
+    dai: "0x6B175474E89094C44Da98b954EedeAC495271d0F",
+    usdc: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48",
+    usdt: "0xdAC17F958D2ee523a2206206994597C13D831ec7",
+    oracleDai: "0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9",
+    oracleEth: "0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419",
+    oracleUsdt: "0x3E7d1eAB13ad0104d2750B8863b489D65364e32D",
+    oracleUsdc: "0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6",
+  };
 
-  //   payment = (await OffscriptPayment.deploy()) as OffscriptPayment; // TODO
-  //   usdc = new ERC20__factory(owner).attach(USDC_ADDRESS);
-  // });
+  beforeEach(async () => {
+    await ForkHelpers.forkToMainnet(14203855);
+  });
 
-  // beforeEach(async () => {
-  //   await ForkHelpers.forkToMainnet(14203855);
-  // });
+  beforeEach(async () => {
+    [owner, alice, bob] = await ethers.getSigners();
+
+    let OffscriptNFT = await ethers.getContractFactory("OffscriptNFT");
+    let OffscriptPayment = await ethers.getContractFactory("OffscriptPayment");
+    nft = (await OffscriptNFT.deploy(
+      "name",
+      "symbol",
+      "https://our-url.com/nfts/",
+      40,
+      [10, 25, 40, 100],
+      [23, 10, 5, 2]
+    )) as OffscriptNFT;
+
+    payment = (await OffscriptPayment.deploy(
+      config.dai,
+      config.usdt,
+      config.usdc,
+      config.oracleEth,
+      config.oracleDai,
+      config.oracleUsdt,
+      config.oracleUsdc,
+      nft.address,
+      200
+    )) as OffscriptPayment;
+
+    usdc = IERC20__factory.connect(config.usdc, owner);
+    usdt = IERC20__factory.connect(config.usdt, owner);
+    dai = IERC20__factory.connect(config.dai, owner);
+  });
+
+  describe("constructor", () => {
+    it("sets all the right values", async () => {
+      expect(await payment.dai()).to.equal(config.dai);
+      expect(await payment.usdt()).to.equal(config.usdt);
+      expect(await payment.usdc()).to.equal(config.usdc);
+      expect(await payment.oracles(config.dai)).to.equal(config.oracleDai);
+      expect(await payment.oracles(config.usdt)).to.equal(config.oracleUsdt);
+      expect(await payment.oracles(config.usdc)).to.equal(config.oracleUsdc);
+      expect(await payment.oracles(ethers.constants.AddressZero)).to.equal(
+        config.oracleEth
+      );
+      expect(await payment.basePrice()).to.equal(200);
+      expect(await payment.nft()).to.equal(nft.address);
+    });
+  });
 
   // it("USDC payment", async () => {
   //   ForkHelpers.mintToken(usdc, alice, parseUnits("1000", 6));
