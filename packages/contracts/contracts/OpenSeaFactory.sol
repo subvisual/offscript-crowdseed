@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ReentrancyGuard} from "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 
@@ -10,7 +11,7 @@ interface IOffscriptNFT {
     function mintPublic(address) external;
 }
 
-contract OpenSeaFactory is ReentrancyGuard, IOpenSeaFactory {
+contract OpenSeaFactory is ReentrancyGuard, Ownable, IOpenSeaFactory {
     string uri;
     IOffscriptNFT nft;
 
@@ -24,7 +25,11 @@ contract OpenSeaFactory is ReentrancyGuard, IOpenSeaFactory {
     }
 
     function tokenURI(uint256 _optionId) public view returns (string memory) {
-        bytes memory metadata = abi.encodePacked('{"image": "', uri, '1.png"}');
+        bytes memory metadata = abi.encodePacked(
+            '{"attributes": {}, "description": "Offscript NFT", "name": "Offscript NFT", "external_url": "https://www.web3creatives.com", "image": "',
+            uri,
+            '"}'
+        );
 
         return
             string(

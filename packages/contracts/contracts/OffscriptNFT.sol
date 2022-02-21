@@ -197,10 +197,6 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         }
     }
 
-    function _baseURI() internal view override(ERC721) returns (string memory) {
-        return baseURI;
-    }
-
     //Override functions
     function _beforeTokenTransfer(
         address from,

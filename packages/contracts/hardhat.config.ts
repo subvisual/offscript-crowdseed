@@ -14,7 +14,8 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const { DEV_MNEMONIC, TESTNET_MNEMONIC, INFURA_ETH_ID } = process.env;
+const { DEV_MNEMONIC, TESTNET_MNEMONIC, INFURA_ETH_ID, ALCHEMY_API_KEY } =
+  process.env;
 
 let networks: Record<string, any> = {
   hardhat: {
@@ -27,6 +28,12 @@ let networks: Record<string, any> = {
 if (!process.env.CI) {
   networks["rinkeby"] = {
     url: `https://rinkeby.infura.io/v3/${INFURA_ETH_ID}`,
+    accounts: {
+      mnemonic: TESTNET_MNEMONIC,
+    },
+  };
+  networks["mumbai"] = {
+    url: `https://polygon-mumbai.g.alchemy.com/v2/${ALCHEMY_API_KEY}`,
     accounts: {
       mnemonic: TESTNET_MNEMONIC,
     },
