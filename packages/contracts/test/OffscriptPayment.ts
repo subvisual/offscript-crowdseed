@@ -21,7 +21,6 @@ describe("OffscriptPayment", () => {
 
   let payment: OffscriptPayment;
   let usdc: IERC20;
-  let usdc: IERC20;
   let dai: IERC20;
   let usdt: IERC20;
 
