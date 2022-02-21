@@ -104,45 +104,36 @@ describe("OffscriptNFT", () => {
 
       await expect(action).to.be.reverted;
     });
+  });
 
-    describe("check URI functions", () => {
-      it("checks if URI is correct", async () => {
-        nft.mintPublic(alice.address);
+  describe("check URI functions", () => {
+    it("checks if URI is correct", async () => {
+      nft.mintPublic(alice.address);
 
-        const uri = await nft.tokenURI(1);
+      const uri = await nft.tokenURI(1);
 
-        expect(uri).to.equal("https://our-url.com/nfts/1");
-      });
+      expect(uri.startsWith("data:application/json;base64,")).to.be.true;
 
-      it("does not allow anyone but the owner to change the baseURI", async () => {
-        const action = nft.connect(alice).setBaseURI("someURL");
+      var buffer = Buffer.from(uri.split(",")[1], "base64");
+      const metadata = JSON.parse(buffer.toString());
 
-        await expect(action).to.be.reverted;
-      });
+      expect(metadata.attributes.discount).to.be.a("number");
+      expect(metadata.image).to.be.eq("https://our-url.com/nfts/1.png");
     });
 
-    describe("setTokenURI", () => {
-      it("allows changing the URI", async () => {
-        await nft.mintPublic(alice.address);
+    it("does not allow anyone but the owner to change the baseURI", async () => {
+      const action = nft.connect(alice).setBaseURI("someURL");
 
-        expect(await nft.tokenURI(1)).to.equal("https://our-url.com/nfts/1");
+      await expect(action).to.be.reverted;
+    });
+  });
 
-        await nft.setTokenURI(1, "not-1");
+  describe("tokenURI", () => {
+    it("gets the metadata for a given token", async () => {
+      nft.mintPublic(alice.address);
 
-        expect(await nft.tokenURI(1)).to.equal(
-          "https://our-url.com/nfts/not-1"
-        );
-
-        await nft.setBaseURI("");
-
-        expect(await nft.tokenURI(1)).to.equal("not-1");
-      });
-
-      it("is not callable by a non-owner", async () => {
-        await nft.mintPublic(alice.address);
-
-        expect(nft.connect(alice).setTokenURI(1, "")).to.be.reverted;
-      });
+      const uri = await nft.tokenURI(1);
+      console.log(uri);
     });
   });
 });
