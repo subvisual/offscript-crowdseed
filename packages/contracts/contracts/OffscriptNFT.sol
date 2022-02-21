@@ -2,13 +2,17 @@
 pragma solidity ^0.8.11;
 
 // We first import some OpenZeppelin Contracts.
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
+import {IOffscriptNFT} from "./IOffscriptNFT.sol";
 import {Trust} from "./Trust.sol";
 
-contract OffscriptNFT is ERC721, Trust {
+import "hardhat/console.sol";
+
+contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
     //
     // Events
     //
@@ -204,7 +208,7 @@ contract OffscriptNFT is ERC721, Trust {
         public
         view
         virtual
-        override(ERC721)
+        override(ERC721, IERC165)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

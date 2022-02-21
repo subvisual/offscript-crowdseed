@@ -23,6 +23,6 @@ const func: DeployFunction = async function (hre) {
 };
 
 func.id = "deploy_nft";
-func.tags = ["OffscriptNFT"];
+func.tags = ["nft"];
 
 export default func;
