@@ -38,6 +38,10 @@ describe("OffscriptPayment", () => {
   };
 
   beforeEach(async () => {
+    await ForkHelpers.forkToMainnet(14203855);
+  });
+
+  beforeEach(async () => {
     [owner, alice, bob] = await ethers.getSigners();
 
     let OffscriptNFT = await ethers.getContractFactory("OffscriptNFT");
@@ -66,10 +70,6 @@ describe("OffscriptPayment", () => {
     usdc = IERC20__factory.connect(config.usdc, owner);
     usdt = IERC20__factory.connect(config.usdt, owner);
     dai = IERC20__factory.connect(config.dai, owner);
-  });
-
-  beforeEach(async () => {
-    await ForkHelpers.forkToMainnet(14203855);
   });
 
   describe("constructor", () => {

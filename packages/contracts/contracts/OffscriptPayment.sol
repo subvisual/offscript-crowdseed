@@ -57,7 +57,7 @@ contract OffscriptPayment is Ownable {
         uint256 _basePrice
     ) Ownable() {
         // TODO address(0) checks
-        _nft = nft;
+        nft = _nft;
         dai = _dai;
         usdt = _usdt;
         usdc = _usdc;
