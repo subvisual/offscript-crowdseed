@@ -14,7 +14,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const { DEV_MNEMONIC } = process.env;
+const { DEV_MNEMONIC, TESTNET_MNEMONIC, INFURA_ETH_ID } = process.env;
 
 const config = {
   solidity: {
@@ -30,6 +30,12 @@ const config = {
     hardhat: {
       accounts: {
         mnemonic: DEV_MNEMONIC,
+      },
+    },
+    rinkeby: {
+      url: `https://rinkeby.infura.io/v3/${INFURA_ETH_ID}`,
+      accounts: {
+        mnemonic: TESTNET_MNEMONIC,
       },
     },
   },
