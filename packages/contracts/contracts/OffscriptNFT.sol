@@ -2,154 +2,193 @@
 pragma solidity ^0.8.11;
 
 // We first import some OpenZeppelin Contracts.
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
+import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+
+import {IOffscriptNFT} from "./IOffscriptNFT.sol";
+import {Trust} from "./Trust.sol";
+
 import "hardhat/console.sol";
-import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
-// We inherit the contract we imported. This means we'll have access
-// to the inherited contract's methods.
-contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
-    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
+    //
+    // Events
+    //
 
-    // Magic given to us by OpenZeppelin to help us keep track of tokenIds.
-    using Counters for Counters.Counter;
-    Counters.Counter private _idInside; // contador para os reservados
-    Counters.Counter private _idPublic; // contador dos minted aberto
+    /// Emitted when the base URI changes
+    event BaseURIUpdated(string newBaseURI);
 
-    // token to discount
-    mapping(uint8 => uint8) public traits;
+    //
+    // State
+    //
 
+    // token => discount
+    mapping(uint256 => uint256) public traits;
+
+    /// Base URI for all NFTs
     string public baseURI;
 
     //Supplies
-    uint8 immutable totalPublicSupply;
-    uint8 public publicSupply;
-    uint8 public internalSupply;
+    uint8 public immutable totalPublicSupply;
+    uint8 public remainingPublicSupply;
+    uint8 public nextPrivateID;
 
-    // { 10 => 10, 20 => 15, 30 => 15, 50 => 4, 100 => 1}
     uint8[] public discounts;
     uint8[] public availablePerTrait;
 
-     event BaseURIUpdated(string newBaseURI);
+    //
+    // Constructor
+    //
 
     // We need to pass the name of our NFTs token and its symbol.
     constructor(
+        string memory _name,
+        string memory _symbol,
         string memory _baseURI,
-        uint8 _publicSupply,
-        uint8 _internalSupply,
+        uint8 _remainingPublicSupply,
         uint8[] memory _discounts,
         uint8[] memory _availablePerTrait
-    ) ERC721("OffscriptNFT", "OFFSCRIPT") {
-        _setupRole(DEFAULT_ADMIN_ROLE, msg.sender);
-        _setupRole(MINTER_ROLE, msg.sender);
-    
+    ) ERC721(_name, _symbol) Trust(msg.sender) {
         baseURI = _baseURI;
 
-        totalPublicSupply = _publicSupply;
-        publicSupply = _publicSupply;
-        internalSupply = _internalSupply;
+        totalPublicSupply = _remainingPublicSupply;
+        remainingPublicSupply = _remainingPublicSupply;
+        nextPrivateID = totalPublicSupply + 1;
 
         discounts = _discounts;
         availablePerTrait = _availablePerTrait;
+
+        emit BaseURIUpdated(_baseURI);
     }
 
-    function setMinter(address _minter) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        grantRole(MINTER_ROLE, _minter);
+    //
+    // ERC721
+    //
+
+    function tokenURI(uint256 tokenId)
+        public
+        view
+        override(ERC721)
+        returns (string memory)
+    {
+        uint256 discount = traits[tokenId];
+
+        bytes memory metadata = abi.encodePacked(
+            '{"attributes": {"discount": ',
+            Strings.toString(discount),
+            '}, "image": "',
+            baseURI,
+            Strings.toString(tokenId),
+            '.png"}'
+        );
+
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(metadata)
+                )
+            );
+    }
+
+    //
+    // Public API
+    //
+
+    /**
+     * Updates the base URI
+     *
+     * @notice Only callable by an authorized operator
+     *
+     * @param _newBaseURI new base URI for the token
+     */
+    function setBaseURI(string memory _newBaseURI) public requiresTrust {
+        baseURI = _newBaseURI;
+
+        emit BaseURIUpdated(_newBaseURI);
     }
 
     // A function our user will hit to get their NFT.
-    function mintPublic(address _address) public onlyRole(MINTER_ROLE) {
-        require(publicSupply > 0, "Depleted");
-        require(_idPublic.current() <= 45, "Maximum NFT's already minted");
+    function mintPublic(address _address) public requiresTrust {
+        require(remainingPublicSupply > 0, "Depleted");
 
-        uint8 random = uint8(uint256(
-            keccak256(abi.encodePacked(block.difficulty, block.timestamp))
-        ));
+        // IDs from from #1 to #totalPublicSupply
+        uint256 newItemId = uint256(
+            totalPublicSupply - remainingPublicSupply + 1
+        );
 
-        // Get the current tokenId, this starts at 0.
-        uint8 newItemId = uint8(_idPublic.current());
+        uint8 random = uint8(
+            uint256(
+                keccak256(
+                    abi.encodePacked(
+                        msg.sender,
+                        tx.origin,
+                        block.difficulty,
+                        block.timestamp
+                    )
+                )
+            )
+        );
 
         uint8 discount = calculateDiscount(random);
 
         _mintWithDiscount(_address, newItemId, discount);
-
-        console.log(
-            "An NFT w/ ID %s has been minted to %s with discount %s",
-            newItemId,
-            _address,
-            discount
-        );
-
-        // Increment the counter for when the next NFT is minted.
-        _idPublic.increment();
+        remainingPublicSupply--;
     }
 
-    function mintInternal(
+    function mintPrivate(
         address[] calldata _addresses,
         uint8[] calldata _discounts
-    ) external onlyRole(MINTER_ROLE) {
+    ) external requiresTrust {
         require(
             _addresses.length == _discounts.length,
             "Arrays size must be the same"
         );
         require(_addresses.length > 0, "Array must be greater than 0");
-        // require(_idInside.current()<=105, "Maximum NFT's already minted");
 
         uint8 length = uint8(_addresses.length);
 
-        require(internalSupply >= length && internalSupply > 0, "Depleted");
-
         for (uint8 i = 0; i < length; i++) {
-            _mintWithDiscount(
-                _addresses[i],
-                uint8(_idInside.current() + totalPublicSupply),
-                discounts[i]
-            );
-            _idInside.increment();
-            internalSupply -= 1;
+            uint256 newItemID = uint256(nextPrivateID);
+
+            _mintWithDiscount(_addresses[i], newItemID, discounts[i]);
+            nextPrivateID++;
         }
     }
 
+    //
+    // Internal API
+    //
+
     function _mintWithDiscount(
         address _owner,
-        uint8 _id,
+        uint256 _id,
         uint8 _discount
     ) internal {
         traits[_id] = _discount;
         _safeMint(_owner, _id);
     }
 
-    function calculateDiscount(uint8 random)
+    function calculateDiscount(uint8 _random)
         internal
         returns (uint8 discount)
     {
-        uint8 _random = random % publicSupply;
-        console.log("Random is %s", _random);
-        // 10 -> 10% // 15 -> 20% // 15 -> 30% // 4 -> 40% // 1 -> 50%
+        _random %= remainingPublicSupply;
+
         uint8 i = 0;
-        while (i < availablePerTrait.length) {
-            console.log("Random inside is %s", _random);
-            bool aux = (_random <= availablePerTrait[i] &&
-                availablePerTrait[i] > 0);
-            if (aux) {
-                publicSupply -= 1;
-                availablePerTrait[i] -= 1;
+        uint8 length = uint8(availablePerTrait.length);
+        while (i < length) {
+            uint8 available = availablePerTrait[i];
+            if (_random < available) {
+                availablePerTrait[i]--;
                 return discounts[i];
             } else {
-                _random -= availablePerTrait[i];
+                _random -= available;
             }
             i++;
         }
-    }
-
-    function setBaseURI(string memory _newBaseURI) public onlyRole(DEFAULT_ADMIN_ROLE) {
-        baseURI = _newBaseURI;
-
-        emit BaseURIUpdated(_newBaseURI);
     }
 
     function _baseURI() internal view override(ERC721) returns (string memory) {
@@ -161,7 +200,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         address from,
         address to,
         uint256 amount
-    ) internal override(ERC721, ERC721Enumerable) {
+    ) internal override(ERC721) {
         super._beforeTokenTransfer(from, to, amount);
     }
 
@@ -169,7 +208,7 @@ contract OffscriptNFT is ERC721, ERC721Enumerable, AccessControl {
         public
         view
         virtual
-        override(ERC721, ERC721Enumerable, AccessControl)
+        override(ERC721, IERC165)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

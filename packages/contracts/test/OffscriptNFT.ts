@@ -20,108 +20,120 @@ describe("OffscriptNFT", () => {
     let OffscriptNFT = await ethers.getContractFactory("OffscriptNFT");
 
     nft = (await OffscriptNFT.deploy(
+      "name",
+      "symbol",
       "https://our-url.com/nfts/",
-      45,
-      105,
-      [10, 20, 30, 40, 50],
-      [10, 15, 15, 4, 1]
+      40,
+      [10, 25, 40, 100],
+      [23, 10, 5, 2]
     )) as OffscriptNFT;
   });
 
   describe("constructor", () => {
     it("sets the correct name", async () => {
-      expect(await nft.name()).to.equal("OffscriptNFT");
+      expect(await nft.name()).to.equal("name");
     });
 
     it("sets the correct symbol", async () => {
-      expect(await nft.symbol()).to.equal("OFFSCRIPT");
+      expect(await nft.symbol()).to.equal("symbol");
     });
 
     it("sets the correct public supply", async () => {
-      expect(await nft.publicSupply()).to.equal(45);
-    });
-
-    it("sets the correct internal supply", async () => {
-      expect(await nft.internalSupply()).to.equal(105);
+      expect(await nft.totalPublicSupply()).to.equal(40);
     });
 
     it("sets the correct discounts supply", async () => {
       expect(await nft.discounts(0)).to.equal(10);
-      expect(await nft.discounts(1)).to.equal(20);
-      expect(await nft.discounts(2)).to.equal(30);
-      expect(await nft.discounts(3)).to.equal(40);
-      expect(await nft.discounts(4)).to.equal(50);
+      expect(await nft.discounts(1)).to.equal(25);
+      expect(await nft.discounts(2)).to.equal(40);
+      expect(await nft.discounts(3)).to.equal(100);
 
-      expect(await nft.availablePerTrait(0)).to.equal(10);
-      expect(await nft.availablePerTrait(1)).to.equal(15);
-      expect(await nft.availablePerTrait(2)).to.equal(15);
-      expect(await nft.availablePerTrait(3)).to.equal(4);
-      expect(await nft.availablePerTrait(4)).to.equal(1);
+      expect(await nft.availablePerTrait(0)).to.equal(23);
+      expect(await nft.availablePerTrait(1)).to.equal(10);
+      expect(await nft.availablePerTrait(2)).to.equal(5);
+      expect(await nft.availablePerTrait(3)).to.equal(2);
     });
   });
 
   describe("mintPublic", () => {
     it("can mint 45 NFTs", async () => {
-      for (let i = 0; i < 45; ++i) {
-        await nft.connect(alice).mintPublic();
+      const supply = await nft.totalPublicSupply();
+      for (let i = 0; i < supply; ++i) {
+        await nft.mintPublic(alice.address);
       }
 
+      expect(await nft.remainingPublicSupply()).to.equal(0);
       // the 46th must fail
-      await expect(nft.connect(alice).mintPublic()).to.be.revertedWith(
+      await expect(nft.mintPublic(alice.address)).to.be.revertedWith(
         "Depleted"
       );
     });
 
-    it("after the 45 mints, all availablePerTrait values are 0", async () => {
-      for (let i = 0; i < 45; ++i) {
-        await nft.connect(alice).mintPublic();
+    it("after all public mints, all availablePerTrait values are 0", async () => {
+      const supply = await nft.totalPublicSupply();
+      for (let i = 0; i < supply; ++i) {
+        await nft.mintPublic(alice.address);
       }
 
       expect(await nft.availablePerTrait(0)).to.equal(0);
       expect(await nft.availablePerTrait(1)).to.equal(0);
       expect(await nft.availablePerTrait(2)).to.equal(0);
       expect(await nft.availablePerTrait(3)).to.equal(0);
-      expect(await nft.availablePerTrait(4)).to.equal(0);
+    });
+
+    it("after all public mints, remaining public supply is 0", async () => {
+      const supply = await nft.totalPublicSupply();
+      for (let i = 0; i < supply; ++i) {
+        await nft.mintPublic(alice.address);
+      }
+
+      expect(await nft.remainingPublicSupply()).to.equal(0);
     });
   });
 
-  describe("mintInternal", () => {
-    it("can mint 105 NFTs", async () => {
-      for (let i = 0; i < 105; ++i) {
-        await nft.connect(owner).mintInternal([alice.address], [10]);
+  describe("mintPrivate", () => {
+    it("can mint many NFTs", async () => {
+      const supply = 200;
+      for (let i = 0; i < supply; ++i) {
+        await nft.mintPrivate([alice.address], [10]);
       }
-
-      // the 106th must fail
-      await expect(
-        nft.connect(owner).mintInternal([alice.address], [10])
-      ).to.be.revertedWith("Depleted");
     });
 
     it("can only be called by the owner", async () => {
-      const action = nft.connect(alice).mintInternal([alice.address], [10]);
+      const action = nft.connect(alice).mintPrivate([alice.address], [10]);
 
-      await expect(action).to.be.revertedWith(
-        "Ownable: caller is not the owner"
-      );
+      await expect(action).to.be.reverted;
+    });
+  });
+
+  describe("check URI functions", () => {
+    it("checks if URI is correct", async () => {
+      nft.mintPublic(alice.address);
+
+      const uri = await nft.tokenURI(1);
+
+      expect(uri.startsWith("data:application/json;base64,")).to.be.true;
+
+      var buffer = Buffer.from(uri.split(",")[1], "base64");
+      const metadata = JSON.parse(buffer.toString());
+
+      expect(metadata.attributes.discount).to.be.a("number");
+      expect(metadata.image).to.be.eq("https://our-url.com/nfts/1.png");
     });
 
-    describe("check URI functions", () => {
-      
-      it("checks if URI is correct", async() => {
-        nft.connect(alice).mintPublic();
-        
-        const token_uri = await nft.tokenURI(0);
+    it("does not allow anyone but the owner to change the baseURI", async () => {
+      const action = nft.connect(alice).setBaseURI("someURL");
 
-        await expect(token_uri).to.equal('https://our-url.com/nfts/0')
-      });
+      await expect(action).to.be.reverted;
+    });
+  });
 
-      it("does not allow anyone but the owner to change the baseURI", async () => {
-        const action = nft.connect(alice).setBaseURI("someURL");
+  describe("tokenURI", () => {
+    it("gets the metadata for a given token", async () => {
+      nft.mintPublic(alice.address);
 
-        await expect(action).to.be.revertedWith(
-          "Ownable: caller is not the owner"
-        );
-      })
-    })
+      const uri = await nft.tokenURI(1);
+      console.log(uri);
+    });
   });
 });

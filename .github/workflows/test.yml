@@ -16,6 +16,7 @@ jobs:
 
     env:
       FORCE_COLOR: true
+      MAINNET_ENDPOINT: ${{ secrets.MAINNET_ENDPOINT }}
 
     steps:
       - uses: actions/checkout@v2
@@ -23,14 +24,19 @@ jobs:
         with:
           node-version: '16'
 
-      - uses: actions/cache@v2
-        with:
-          path: ~/.npm
-          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
-          restore-keys: |
-            ${{ runner.os }}-node-
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "::set-output name=dir::$(yarn cache dir)"
 
-      - run: npm install
-      - run: node_modules/.bin/solhint contracts/**/*.sol
-      - run: node_modules/.bin/hardhat compile
-      - run: node_modules/.bin/hardhat test
+      - uses: actions/cache@v2
+        id: yarn-cache # use this to check for `cache-hit` (`steps.yarn-cache.outputs.cache-hit != 'true'`)
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.dir }}
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
+
+      - run: yarn install
+      - run: yarn contracts:compile
+      - run: yarn lint
+      - run: yarn test

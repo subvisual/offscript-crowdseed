@@ -12,15 +12,17 @@
       "**/typechain/**",
       "**/@rari-capital/**",
       "**/typescript",
-      "**/ts-node"
+      "**/ts-node",
+      "@typescript-eslint/**"
     ]
   },
   "scripts": {
     "contracts:dev": "yarn workspace @offscript-nft/contracts dev",
     "contracts:export": "yarn workspace @offscript-nft/contracts export",
-    "contracts:build": "yarn workspace @offscript-nft/contracts build",
+    "contracts:compile": "yarn workspace @offscript-nft/contracts compile",
     "web:dev": "yarn workspace @offscript-nft/web start",
     "web:deploy": "yarn workspace @offscript-nft/web deploy",
+    "lint": "yarn workspace @offscript-nft/contracts lint",
     "test": "yarn workspace @offscript-nft/contracts test"
   }
 }

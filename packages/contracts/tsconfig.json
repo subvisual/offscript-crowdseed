@@ -17,13 +17,6 @@
       "@root/*": ["./*"]
     }
   },
-  "include": [
-    "./scripts",
-    "./test",
-    "./typechain",
-    "./deploy"
-  ],
-  "files": [
-    "./hardhat.config.ts"
-  ],
+  "include": ["./scripts", "./test", "./typechain", "./deploy"],
+  "files": ["./hardhat.config.ts"]
 }
