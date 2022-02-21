@@ -81,7 +81,10 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         uint256 discount = traits[tokenId];
 
         bytes memory metadata = abi.encodePacked(
-            '{"attributes": {"discount": ',
+            '{"description": "TODO", ',
+            '"name": "TODO"',
+            '"external_url": "https://www.web3creatives.com", ',
+            '"attributes": {"discount": ',
             Strings.toString(discount),
             '}, "image": "',
             baseURI,

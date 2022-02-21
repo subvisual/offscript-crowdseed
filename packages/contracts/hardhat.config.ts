@@ -26,6 +26,7 @@ let networks: Record<string, any> = {
 
 if (!process.env.CI) {
   networks["rinkeby"] = {
+    chainId: 4,
     url: `https://rinkeby.infura.io/v3/${INFURA_ETH_ID}`,
     accounts: {
       mnemonic: TESTNET_MNEMONIC,
