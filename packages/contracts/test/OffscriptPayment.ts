@@ -2,8 +2,12 @@ import { ethers } from "hardhat";
 import { expect } from "chai";
 
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import type { OffscriptPayment, ERC20, OffscriptNFT } from "../typechain-types";
-import { ERC20__factory } from "../typechain-types";
+import type {
+  OffscriptPayment,
+  IERC20,
+  OffscriptNFT,
+} from "../typechain-types";
+import { IERC20__factory } from "../typechain-types";
 
 import * as ForkHelpers from "./forkHelpers";
 
@@ -16,9 +20,9 @@ describe("OffscriptPayment", () => {
   let bob: SignerWithAddress;
 
   let payment: OffscriptPayment;
-  let usdc: ERC20;
-  let dai: ERC20;
-  let usdt: ERC20;
+  let usdc: IERC20;
+  let dai: IERC20;
+  let usdt: IERC20;
 
   let nft: OffscriptNFT;
 
@@ -59,9 +63,9 @@ describe("OffscriptPayment", () => {
       200
     )) as OffscriptPayment;
 
-    usdc = new ERC20__factory(owner).attach(config.usdc);
-    usdt = new ERC20__factory(owner).attach(config.usdt);
-    dai = new ERC20__factory(owner).attach(config.dai);
+    usdc = IERC20__factory.connect(config.usdc, owner);
+    usdt = IERC20__factory.connect(config.usdt, owner);
+    dai = IERC20__factory.connect(config.dai, owner);
   });
 
   beforeEach(async () => {
