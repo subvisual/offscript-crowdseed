@@ -13,7 +13,7 @@ const func: DeployFunction = async function (hre) {
     args: [
       "OffscriptNFT",
       "OFFSCRIPT",
-      "https://nft.offscript.com/assets/",
+      "https://ipfs.io/ipfs/QmTVpMGYEfkLrdpmthA1oWpcpMVqnpWYBuTvQ6stTjXojF/",
       40,
       [10, 25, 40, 100],
       [23, 10, 5, 2],

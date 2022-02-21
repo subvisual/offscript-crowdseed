@@ -4,14 +4,15 @@ pragma solidity ^0.8.11;
 // We first import some OpenZeppelin Contracts.
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
+import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
+import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {IOffscriptNFT} from "./IOffscriptNFT.sol";
 import {Trust} from "./Trust.sol";
 
 import "hardhat/console.sol";
 
-contract OffscriptNFT is ERC721URIStorage, Trust, IOffscriptNFT {
+contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
     //
     // Events
     //
@@ -69,26 +70,32 @@ contract OffscriptNFT is ERC721URIStorage, Trust, IOffscriptNFT {
     function tokenURI(uint256 tokenId)
         public
         view
-        override(ERC721URIStorage)
+        override(ERC721)
         returns (string memory)
     {
-        return ERC721URIStorage.tokenURI(tokenId);
-    }
+        uint256 discount = traits[tokenId];
 
-    function _burn(uint256 tokenId) internal override(ERC721URIStorage) {
-        ERC721URIStorage._burn(tokenId);
+        bytes memory metadata = abi.encodePacked(
+            '{"attributes": {"discount": ',
+            Strings.toString(discount),
+            '}, "image": "',
+            baseURI,
+            Strings.toString(tokenId),
+            '.png"}'
+        );
+
+        return
+            string(
+                abi.encodePacked(
+                    "data:application/json;base64,",
+                    Base64.encode(metadata)
+                )
+            );
     }
 
     //
     // Public API
     //
-
-    function setTokenURI(uint256 tokenId, string memory _tokenURI)
-        external
-        requiresTrust
-    {
-        _setTokenURI(tokenId, _tokenURI);
-    }
 
     /**
      * Updates the base URI
