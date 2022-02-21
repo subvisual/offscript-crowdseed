@@ -16,6 +16,7 @@ jobs:
 
     env:
       FORCE_COLOR: true
+      MAINNET_ENDPOINT: ${{ secrets.MAINNET_ENDPOINT }}
 
     steps:
       - uses: actions/checkout@v2
