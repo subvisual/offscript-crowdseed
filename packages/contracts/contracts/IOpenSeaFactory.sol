@@ -1,7 +1,7 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
-interface IFactory {
+interface IOpenSeaFactory {
     /**
      * @dev Mints asset(s) in accordance to a specific address with a particular "option".
      * Options should also be delineated 0 - (numOptions() - 1) for convenient indexing.

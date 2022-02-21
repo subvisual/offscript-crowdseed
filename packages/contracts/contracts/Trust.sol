@@ -1,8 +1,6 @@
-// SPDX-License-Identifier: AGPL-3.0-only
+// SPDX-License-Identifier: MIT
 pragma solidity >=0.7.0;
 
-/// @notice Ultra minimal authorization logic for smart contracts.
-/// @author Inspired by Dappsys V2 (https://github.com/dapp-org/dappsys-v2/blob/main/src/auth.sol)
 abstract contract Trust {
     event UserTrustUpdated(address indexed user, bool trusted);
 
