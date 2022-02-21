@@ -2,6 +2,7 @@
 pragma solidity ^0.8.11;
 
 // We first import some OpenZeppelin Contracts.
+import {IERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 
@@ -200,7 +201,7 @@ contract OffscriptNFT is ERC721URIStorage, Trust, IOffscriptNFT {
         public
         view
         virtual
-        override(ERC721)
+        override(ERC721, IERC165)
         returns (bool)
     {
         return super.supportsInterface(interfaceId);

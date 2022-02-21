@@ -1,16 +1,17 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.11;
 
-import "hardhat/console.sol";
 import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
-import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
-import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
-import "@openzeppelin/contracts/token/ERC721/extensions/IERC721Enumerable.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IERC20Metadata} from "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
+
+import {AggregatorV3Interface} from "@chainlink/contracts/src/v0.8/interfaces/AggregatorV3Interface.sol";
+
+import {IOffscriptNFT} from "./IOffscriptNFT.sol";
+
+import "hardhat/console.sol";
 
 contract OffscriptPayment is Ownable {
     //
@@ -36,58 +37,47 @@ contract OffscriptPayment is Ownable {
     IERC20 public usdt;
     IERC20 public usdc;
 
-    IOffscriptNFT nft;
+    // NFT contract
+    IOffscriptNFT public nft;
 
-    uint256 ticketPrice;
+    // base ticket price, in USD
+    uint256 public basePrice;
 
-    AggregatorV3Interface priceFeedEth;
-    AggregatorV3Interface priceFeedDai;
-    AggregatorV3Interface priceFeedUsdt;
-    AggregatorV3Interface priceFeedUsdc;
-
-    mapping(address => address) oracles;
-
-    //Oracles
-    //DAI / USD  -  0xAed0c38402a5d19df6E4c03F4E2DceD6e29c1ee9
-    //ETH / USD  -  0x5f4eC3Df9cbd43714FE2740f5E3616155c5b8419
-    //USDT / USD  -  0x3E7d1eAB13ad0104d2750B8863b489D65364e32D
-    //USDC / USD  -  0x8fFfFfd4AfB6115b954Bd326cbe7B4BA576818f6
+    mapping(address => AggregatorV3Interface) public oracles;
 
     constructor(
         IERC20 _dai,
         IERC20 _usdt,
         IERC20 _usdc,
-        address oracleDai,
-        address oracleEth,
-        address oracleUsdt,
-        address oracleUsdc,
-        address nftContract,
-        uint256 _ticketPrice
-    ) Ownable(msg.sender) {
-        //nftContract
-        _nftContract = nftContract;
+        AggregatorV3Interface oracleEth,
+        AggregatorV3Interface oracleDai,
+        AggregatorV3Interface oracleUsdt,
+        AggregatorV3Interface oracleUsdc,
+        IOffscriptNFT _nft,
+        uint256 _basePrice
+    ) Ownable() {
+        // TODO address(0) checks
+        _nft = nft;
+        dai = _dai;
+        usdt = _usdt;
+        usdc = _usdc;
 
-        //Mock tokens
-        dai = _daiAddress;
-        usdt = _usdtAddress;
-        usdc = _usdcAddress;
-
+        oracles[address(0x0)] = oracleEth;
         oracles[address(_dai)] = oracleDai;
         oracles[address(_usdt)] = oracleUsdt;
         oracles[address(_usdc)] = oracleUsdc;
-        oracles[address(0x0)] = oracleEth;
 
-        ticketPrice = _ticketPrice;
+        basePrice = _basePrice;
     }
 
     function checkForNft(address owner) public returns (uint256, uint256) {
         return (0, 0);
-        // uint256 num = _nftContract.balanceOf(owner);
+        // uint256 num = _nft.balanceOf(owner);
         // uint256 discount = 0;
         // uint256 tokenId = 0;
         // for (uint256 i = 0; i < num; i++) {
-        //     uint256 aux = _nftContract.tokenOfOwnerByIndex(owner, i);
-        //     uint256 aux2 = _nftContract.traits(aux);
+        //     uint256 aux = _nft.tokenOfOwnerByIndex(owner, i);
+        //     uint256 aux2 = _nft.traits(aux);
         //     if(aux2 > discount){
         //         discount = aux2;
         //         tokenId = aux;
@@ -120,7 +110,7 @@ contract OffscriptPayment is Ownable {
         discount = discount * 10**(decimals - 2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = ((ticketPrice * 10**oracleDecimals) / uint256(price)) *
+        uint256 amount = ((basePrice * 10**oracleDecimals) / uint256(price)) *
             10**(decimals - oracleDecimals);
 
         uint256 discountInValue = amount * discount;
@@ -151,7 +141,7 @@ contract OffscriptPayment is Ownable {
         discount = discount * 10**(decimals - 2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = ((ticketPrice * 10**oracleDecimals) *
+        uint256 amount = ((basePrice * 10**oracleDecimals) *
             10**(decimals - oracleDecimals)) / uint256(price);
 
         // TODO stack too deep error
@@ -165,9 +155,9 @@ contract OffscriptPayment is Ownable {
     //Caso erro - abortar revert ou require
 
     function withdraw() external onlyOwner {
-        _dai.safeTransfer(msg.sender, _dai.balanceOf(address(this)));
-        _usdt.safeTransfer(msg.sender, _usdt.balanceOf(address(this)));
-        _usdc.safeTransfer(msg.sender, _usdc.balanceOf(address(this)));
+        dai.safeTransfer(msg.sender, dai.balanceOf(address(this)));
+        usdt.safeTransfer(msg.sender, usdt.balanceOf(address(this)));
+        usdc.safeTransfer(msg.sender, usdc.balanceOf(address(this)));
         payable(msg.sender).transfer(address(this).balance);
     }
 }
