@@ -2,9 +2,13 @@ import { DeployFunction } from "hardhat-deploy/types";
 
 const func: DeployFunction = async function (hre) {
   const { deployer } = await hre.getNamedAccounts();
-  const { get, read, execute } = hre.deployments;
+  const { getOrNull, read, execute } = hre.deployments;
 
-  const factory = await get("OpenSeaFactory");
+  const factory = await getOrNull("OpenSeaFactory");
+
+  if (!factory) {
+    return;
+  }
 
   const isTrusted = await read(
     "OffscriptNFT",
@@ -13,15 +17,17 @@ const func: DeployFunction = async function (hre) {
     factory.address
   );
 
-  if (!isTrusted) {
-    await execute(
-      "OffscriptNFT",
-      { from: deployer, log: true },
-      "setIsTrusted",
-      factory.address,
-      true
-    );
+  if (isTrusted) {
+    return;
   }
+
+  await execute(
+    "OffscriptNFT",
+    { from: deployer, log: true },
+    "setIsTrusted",
+    factory.address,
+    true
+  );
 };
 
 func.id = "execute_factory_trust";
