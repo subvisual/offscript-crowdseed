@@ -51,6 +51,7 @@ describe("OffscriptPayment", () => {
       "symbol",
       "https://our-url.com/nfts/",
       40,
+      110,
       [10, 25, 40, 100],
       [23, 10, 5, 2]
     )) as OffscriptNFT;

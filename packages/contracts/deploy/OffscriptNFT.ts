@@ -15,6 +15,7 @@ const func: DeployFunction = async function (hre) {
       "OFFSCRIPT",
       "https://ipfs.io/ipfs/QmTVpMGYEfkLrdpmthA1oWpcpMVqnpWYBuTvQ6stTjXojF/",
       40,
+      110,
       [10, 25, 40, 100],
       [23, 10, 5, 2],
     ],

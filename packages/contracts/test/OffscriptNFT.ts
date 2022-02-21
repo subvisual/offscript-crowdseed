@@ -24,6 +24,7 @@ describe("OffscriptNFT", () => {
       "symbol",
       "https://our-url.com/nfts/",
       40,
+      110,
       [10, 25, 40, 100],
       [23, 10, 5, 2]
     )) as OffscriptNFT;
@@ -92,11 +93,22 @@ describe("OffscriptNFT", () => {
   });
 
   describe("mintPrivate", () => {
+    it("mints with the correct IDs", async () => {
+      await nft.mintPrivate([alice.address, bob.address], [10, 20]);
+
+      expect(await nft.ownerOf(41)).to.eq(alice.address);
+      expect(await nft.ownerOf(42)).to.eq(bob.address);
+      expect(await nft.traits(41)).to.eq(10);
+      expect(await nft.traits(42)).to.eq(20);
+    });
+
     it("can mint many NFTs", async () => {
-      const supply = 200;
+      const supply = await nft.totalPrivateSupply();
       for (let i = 0; i < supply; ++i) {
         await nft.mintPrivate([alice.address], [10]);
       }
+
+      expect(await nft.remainingPrivateSupply()).to.equal(0);
     });
 
     it("can only be called by the owner", async () => {
@@ -133,7 +145,6 @@ describe("OffscriptNFT", () => {
       nft.mintPublic(alice.address);
 
       const uri = await nft.tokenURI(1);
-      console.log(uri);
     });
   });
 });

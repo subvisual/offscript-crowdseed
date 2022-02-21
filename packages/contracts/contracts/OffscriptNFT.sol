@@ -1,4 +1,4 @@
-// SPDX-License-Identifier: UNLICENSED
+// SPDX-License-Identifier: MIT
 pragma solidity ^0.8.11;
 
 // We first import some OpenZeppelin Contracts.
@@ -32,7 +32,9 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
 
     //Supplies
     uint8 public immutable totalPublicSupply;
+    uint8 public immutable totalPrivateSupply;
     uint8 public remainingPublicSupply;
+    uint8 public remainingPrivateSupply;
     uint8 public nextPrivateID;
 
     uint8[] public discounts;
@@ -48,13 +50,16 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         string memory _symbol,
         string memory _baseURI,
         uint8 _remainingPublicSupply,
+        uint8 _remainingPrivateSupply,
         uint8[] memory _discounts,
         uint8[] memory _availablePerTrait
     ) ERC721(_name, _symbol) Trust(msg.sender) {
         baseURI = _baseURI;
 
         totalPublicSupply = _remainingPublicSupply;
+        totalPrivateSupply = _remainingPrivateSupply;
         remainingPublicSupply = _remainingPublicSupply;
+        remainingPrivateSupply = _remainingPrivateSupply;
         nextPrivateID = totalPublicSupply + 1;
 
         discounts = _discounts;
@@ -142,19 +147,20 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         address[] calldata _addresses,
         uint8[] calldata _discounts
     ) external requiresTrust {
-        require(
-            _addresses.length == _discounts.length,
-            "Arrays size must be the same"
-        );
-        require(_addresses.length > 0, "Array must be greater than 0");
-
         uint8 length = uint8(_addresses.length);
 
-        for (uint8 i = 0; i < length; i++) {
-            uint256 newItemID = uint256(nextPrivateID);
+        require(length == _discounts.length, "Arrays size must be the same");
+        require(_addresses.length > 0, "Array must be greater than 0");
+        require(remainingPrivateSupply >= length, "Not enough supply");
 
-            _mintWithDiscount(_addresses[i], newItemID, discounts[i]);
-            nextPrivateID++;
+        uint256 nextId = uint256(
+            totalPrivateSupply + totalPublicSupply - remainingPrivateSupply + 1
+        );
+
+        remainingPrivateSupply -= length;
+
+        for (uint8 i = 0; i < length; i++) {
+            _mintWithDiscount(_addresses[i], nextId + i, _discounts[i]);
         }
     }
 
