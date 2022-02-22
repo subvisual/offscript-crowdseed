@@ -8,18 +8,18 @@ async function main() {
 
   const nft = (await ethers.getContractAt(
     "OffscriptNFT",
-    "0xfcEFb36cAe2A979269810116434FF24589Ba16ef",
+    "0xa45c8d291EB21b8E2aCefC4Ea17A8aEDAa3aD5B8",
     signer
   )) as OffscriptNFT;
 
   const factory = (await ethers.getContractAt(
     "OpenSeaFactory",
-    "0x3c617d25dc82c67a6156691e3ea5f80043e9b1dc",
+    "0xe0F3AB213C636236a631F9FC0BD9353A4207860e",
     signer
   )) as OffscriptNFT;
 
   console.log(await factory.tokenURI(0));
-  await nft.mintPrivate([signer.address], [50]);
+  // await nft.mintPrivate([signer.address], [50]);
 }
 
 main()

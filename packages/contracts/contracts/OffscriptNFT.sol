@@ -4,10 +4,12 @@ pragma solidity ^0.8.11;
 // We first import some OpenZeppelin Contracts.
 import {IERC165} from "@openzeppelin/contracts/utils/introspection/ERC165.sol";
 import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
 
 import {IOffscriptNFT} from "./IOffscriptNFT.sol";
+import {IProxyRegistry} from "./IProxyRegistry.sol";
 import {Trust} from "./Trust.sol";
 
 import "hardhat/console.sol";
@@ -40,6 +42,8 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
     uint8[] public discounts;
     uint8[] public availablePerTrait;
 
+    IProxyRegistry proxyRegistry;
+
     //
     // Constructor
     //
@@ -52,7 +56,8 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         uint8 _remainingPublicSupply,
         uint8 _remainingPrivateSupply,
         uint8[] memory _discounts,
-        uint8[] memory _availablePerTrait
+        uint8[] memory _availablePerTrait,
+        IProxyRegistry _proxyRegistry
     ) ERC721(_name, _symbol) Trust(msg.sender) {
         baseURI = _baseURI;
 
@@ -64,6 +69,8 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
 
         discounts = _discounts;
         availablePerTrait = _availablePerTrait;
+
+        proxyRegistry = _proxyRegistry;
 
         emit BaseURIUpdated(_baseURI);
     }
@@ -81,9 +88,9 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         uint256 discount = traits[tokenId];
 
         bytes memory metadata = abi.encodePacked(
-            '{"description": "TODO", ',
-            '"name": "TODO"',
-            '"external_url": "https://www.web3creatives.com", ',
+            '{"description": "TODO",',
+            '"name": "TODO",',
+            '"external_url": "https://www.web3creatives.com",',
             '"attributes": {"discount": ',
             Strings.toString(discount),
             '}, "image": "',
@@ -221,5 +228,22 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         returns (bool)
     {
         return super.supportsInterface(interfaceId);
+    }
+
+    /**
+     * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
+     */
+    function isApprovedForAll(address owner, address operator)
+        public
+        view
+        override(IERC721, ERC721)
+        returns (bool)
+    {
+        // Whitelist OpenSea proxy contract for easy trading.
+        if (address(proxyRegistry.proxies(owner)) == operator) {
+            return true;
+        }
+
+        return super.isApprovedForAll(owner, operator);
     }
 }

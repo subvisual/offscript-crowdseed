@@ -97,9 +97,9 @@ contract OpenSeaFactory is
         uint256 /*_optionId*/
     ) external view override(IOpenSeaFactoryERC721) returns (string memory) {
         bytes memory metadata = abi.encodePacked(
-            '{"description": "TODO", ',
-            '"name": "TODO"',
-            '"external_url": "https://www.web3creatives.com", ',
+            '{"description": "TODO",',
+            '"name": "TODO",',
+            '"external_url": "https://www.web3creatives.com",',
             '"image": "',
             uri,
             '"}'

@@ -26,7 +26,8 @@ describe("OffscriptNFT", () => {
       40,
       110,
       [10, 25, 40, 100],
-      [23, 10, 5, 2]
+      [23, 10, 5, 2],
+      ethers.constants.AddressZero
     )) as OffscriptNFT;
   });
 

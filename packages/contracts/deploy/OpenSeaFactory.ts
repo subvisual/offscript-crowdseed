@@ -38,10 +38,6 @@ const func: DeployFunction = async function (hre) {
 func.id = "deploy_factory";
 func.tags = ["factory"];
 func.dependencies = ["nft"];
-func.skip = async () => {
-  console.log(network.config.chainId);
-
-  return !configs[network.config.chainId!];
-};
+func.skip = async () => !configs[network.config.chainId!];
 
 export default func;
