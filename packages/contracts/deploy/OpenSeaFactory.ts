@@ -27,8 +27,7 @@ const func: DeployFunction = async function (hre) {
   await deploy("OpenSeaFactory", {
     from: deployer,
     args: [
-      // TODO replace with a template image
-      "https://ipfs.io/ipfs/QmTVpMGYEfkLrdpmthA1oWpcpMVqnpWYBuTvQ6stTjXojF/1.png",
+      "https://ipfs.io/ipfs/QmSQpjJSKnjR9X23WaGp1gKo7ReteUMNri16Vru43pGGHC/default.png",
       nft.address,
       config.proxyRegistry,
     ],

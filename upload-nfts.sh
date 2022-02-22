@@ -1,3 +1,3 @@
 #!/bin/sh
 
-ipfs-upload-client --id $INFURA_ID --secret $INFURA_SECRET ./nfts
+ipfs-upload-client --id $INFURA_IPFS_ID --secret $INFURA_IPFS_SECRET ./nfts
