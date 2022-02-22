@@ -3,7 +3,7 @@ import { expect } from "chai";
 
 import type { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
 import type { OffscriptNFT } from "../typechain-types";
-import { assert } from "console";
+import { BigNumber } from "ethers";
 
 const { parseUnits } = ethers.utils;
 
@@ -13,6 +13,7 @@ describe("OffscriptNFT", () => {
   let bob: SignerWithAddress;
 
   let nft: OffscriptNFT;
+  const price = parseUnits("0.03");
 
   beforeEach(async () => {
     [owner, alice, bob] = await ethers.getSigners();
@@ -27,7 +28,7 @@ describe("OffscriptNFT", () => {
       110,
       [10, 25, 40, 100],
       [23, 10, 5, 2],
-      ethers.constants.AddressZero
+      price
     )) as OffscriptNFT;
   });
 
@@ -55,26 +56,40 @@ describe("OffscriptNFT", () => {
       expect(await nft.availablePerTrait(2)).to.equal(5);
       expect(await nft.availablePerTrait(3)).to.equal(2);
     });
+
+    it("sets the correct price", async () => {
+      expect(await nft.price()).to.equal(price);
+    });
   });
 
   describe("mintPublic", () => {
-    it("can mint 45 NFTs", async () => {
+    it("can mint 40 NFTs", async () => {
       const supply = await nft.totalPublicSupply();
       for (let i = 0; i < supply; ++i) {
-        await nft.mintPublic(alice.address);
+        await nft.mintPublic({ value: price });
       }
 
       expect(await nft.remainingPublicSupply()).to.equal(0);
       // the 46th must fail
-      await expect(nft.mintPublic(alice.address)).to.be.revertedWith(
+      await expect(nft.mintPublic({ value: price })).to.be.revertedWith(
         "Depleted"
       );
+    });
+
+    it("each NFT gets a name", async () => {
+      await nft.mintPublic({ value: price });
+      await nft.mintPublic({ value: price });
+
+      const metadata1 = await nft.getMetadata(1);
+      const metadata2 = await nft.getMetadata(2);
+      expect(metadata1.name).to.equal("Alder");
+      expect(metadata2.name).to.equal("Black alder");
     });
 
     it("after all public mints, all availablePerTrait values are 0", async () => {
       const supply = await nft.totalPublicSupply();
       for (let i = 0; i < supply; ++i) {
-        await nft.mintPublic(alice.address);
+        await nft.mintPublic({ value: price });
       }
 
       expect(await nft.availablePerTrait(0)).to.equal(0);
@@ -86,10 +101,16 @@ describe("OffscriptNFT", () => {
     it("after all public mints, remaining public supply is 0", async () => {
       const supply = await nft.totalPublicSupply();
       for (let i = 0; i < supply; ++i) {
-        await nft.mintPublic(alice.address);
+        await nft.mintPublic({ value: price });
       }
 
       expect(await nft.remainingPublicSupply()).to.equal(0);
+    });
+
+    it("fails if value is lower than price", async () => {
+      const tx = nft.mintPublic({ value: price.sub(1) });
+
+      await expect(tx).to.be.revertedWith("Not enough");
     });
   });
 
@@ -99,8 +120,13 @@ describe("OffscriptNFT", () => {
 
       expect(await nft.ownerOf(41)).to.eq(alice.address);
       expect(await nft.ownerOf(42)).to.eq(bob.address);
-      expect(await nft.traits(41)).to.eq(10);
-      expect(await nft.traits(42)).to.eq(20);
+
+      const metadata41 = await nft.getMetadata(41);
+      const metadata42 = await nft.getMetadata(42);
+      expect(metadata41.discount).to.eq(10);
+      expect(metadata42.discount).to.eq(20);
+      expect(metadata41.name).to.eq("");
+      expect(metadata42.name).to.eq("");
     });
 
     it("can mint many NFTs", async () => {
@@ -121,7 +147,7 @@ describe("OffscriptNFT", () => {
 
   describe("check URI functions", () => {
     it("checks if URI is correct", async () => {
-      nft.mintPublic(alice.address);
+      nft.mintPublic({ value: price });
 
       const uri = await nft.tokenURI(1);
 
@@ -143,9 +169,19 @@ describe("OffscriptNFT", () => {
 
   describe("tokenURI", () => {
     it("gets the metadata for a given token", async () => {
-      nft.mintPublic(alice.address);
+      nft.mintPublic({ value: price });
 
       const uri = await nft.tokenURI(1);
+    });
+  });
+
+  describe("sweep", () => {
+    it("sends all ether to the owner", async () => {
+      await nft.connect(alice).mintPublic({ value: price });
+      await nft.connect(alice).mintPublic({ value: price });
+      await nft.connect(alice).mintPublic({ value: price });
+
+      // const uri = await nft.tokenURI(1);
     });
   });
 });

@@ -14,12 +14,12 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const { DEV_MNEMONIC, TESTNET_MNEMONIC, INFURA_ETH_ID } = process.env;
+const { TESTNET_MNEMONIC, INFURA_ETH_ID } = process.env;
 
 let networks: Record<string, any> = {
   hardhat: {
     accounts: {
-      mnemonic: DEV_MNEMONIC,
+      mnemonic: TESTNET_MNEMONIC,
     },
   },
 };
