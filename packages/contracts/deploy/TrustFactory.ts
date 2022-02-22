@@ -10,23 +10,17 @@ const func: DeployFunction = async function (hre) {
     return;
   }
 
-  const isTrusted = await read(
-    "OffscriptNFT",
-    { from: deployer },
-    "isTrusted",
-    factory.address
-  );
+  const owner = await read("OffscriptNFT", { from: deployer }, "owner");
 
-  if (isTrusted) {
+  if (owner == factory.address) {
     return;
   }
 
   await execute(
     "OffscriptNFT",
     { from: deployer, log: true },
-    "setIsTrusted",
-    factory.address,
-    true
+    "transferOwnership",
+    factory.address
   );
 };
 

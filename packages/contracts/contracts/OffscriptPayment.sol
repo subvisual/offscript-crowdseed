@@ -22,6 +22,7 @@ contract OffscriptPayment is Ownable {
     //
     // Events
     //
+
     //Save some info?
     event Payment(
         address payer,

@@ -7,20 +7,27 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IOffscriptNFT} from "./IOffscriptNFT.sol";
 import {IProxyRegistry} from "./IProxyRegistry.sol";
-import {Trust} from "./Trust.sol";
 
 import "hardhat/console.sol";
 
-contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
+contract OffscriptNFT is ERC721, Ownable, IOffscriptNFT {
     //
     // Events
     //
 
     /// Emitted when the base URI changes
     event BaseURIUpdated(string newBaseURI);
+
+    //
+    // Constants
+    //
+    string public constant description =
+        "Offscript Crowdseed NFT. Owned by early supporters of Offscript - An offsite for creatives in Web3. Owners of this NFT, get a discount during ticket sale";
+    string public constant externalUrl = "https://offscript.web3creatives.com/";
 
     //
     // State
@@ -44,6 +51,9 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
 
     IProxyRegistry proxyRegistry;
 
+    /// Admin address
+    address public admin;
+
     //
     // Constructor
     //
@@ -58,7 +68,7 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         uint8[] memory _discounts,
         uint8[] memory _availablePerTrait,
         IProxyRegistry _proxyRegistry
-    ) ERC721(_name, _symbol) Trust(msg.sender) {
+    ) ERC721(_name, _symbol) Ownable() {
         baseURI = _baseURI;
 
         totalPublicSupply = _remainingPublicSupply;
@@ -72,7 +82,14 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
 
         proxyRegistry = _proxyRegistry;
 
+        admin = msg.sender;
+
         emit BaseURIUpdated(_baseURI);
+    }
+
+    modifier onlyAdmin() {
+        require(msg.sender == admin, "Not admin");
+        _;
     }
 
     //
@@ -88,9 +105,13 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         uint256 discount = traits[tokenId];
 
         bytes memory metadata = abi.encodePacked(
-            '{"description": "TODO",',
+            '{"description": "',
+            description,
+            '",',
             '"name": "TODO",',
-            '"external_url": "https://www.web3creatives.com",',
+            '"external_url": "',
+            externalUrl,
+            '",',
             '"attributes": {"discount": ',
             Strings.toString(discount),
             '}, "image": "',
@@ -119,14 +140,14 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
      *
      * @param _newBaseURI new base URI for the token
      */
-    function setBaseURI(string memory _newBaseURI) public requiresTrust {
+    function setBaseURI(string memory _newBaseURI) public onlyAdmin {
         baseURI = _newBaseURI;
 
         emit BaseURIUpdated(_newBaseURI);
     }
 
     // A function our user will hit to get their NFT.
-    function mintPublic(address _address) public requiresTrust {
+    function mintPublic(address _address) public onlyOwner {
         require(remainingPublicSupply > 0, "Depleted");
 
         // IDs from from #1 to #totalPublicSupply
@@ -156,7 +177,7 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
     function mintPrivate(
         address[] calldata _addresses,
         uint8[] calldata _discounts
-    ) external requiresTrust {
+    ) external onlyAdmin {
         uint8 length = uint8(_addresses.length);
 
         require(length == _discounts.length, "Arrays size must be the same");
@@ -239,7 +260,6 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         override(IERC721, ERC721)
         returns (bool)
     {
-        // Whitelist OpenSea proxy contract for easy trading.
         if (address(proxyRegistry.proxies(owner)) == operator) {
             return true;
         }

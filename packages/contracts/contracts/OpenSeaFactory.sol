@@ -15,6 +15,10 @@ interface IOffscriptNFT {
 
     function symbol() external view returns (string memory);
 
+    function description() external view returns (string memory);
+
+    function externalUrl() external view returns (string memory);
+
     function remainingPublicSupply() external view returns (uint8);
 
     function mintPublic(address) external;
@@ -54,7 +58,7 @@ contract OpenSeaFactory is
         string memory _uri,
         IOffscriptNFT _address,
         IProxyRegistry _proxyRegistry
-    ) {
+    ) Ownable() {
         uri = _uri;
         nft = _address;
         proxyRegistry = _proxyRegistry;
@@ -97,9 +101,15 @@ contract OpenSeaFactory is
         uint256 /*_optionId*/
     ) external view override(IOpenSeaFactoryERC721) returns (string memory) {
         bytes memory metadata = abi.encodePacked(
-            '{"description": "TODO",',
-            '"name": "TODO",',
-            '"external_url": "https://www.web3creatives.com",',
+            '{"description": "',
+            nft.description(),
+            '",',
+            '"name": "',
+            nft.name(),
+            '",',
+            '"external_url": "',
+            nft.externalUrl(),
+            '",',
             '"image": "',
             uri,
             '"}'
@@ -201,11 +211,12 @@ contract OpenSeaFactory is
         if (owner() == _owner && _owner == _operator) {
             return true;
         }
-
-        if (_isOwnerOrProxy(_operator)) {
+        if (
+            owner() == _owner &&
+            address(proxyRegistry.proxies(_owner)) == _operator
+        ) {
             return true;
         }
-
         return false;
     }
 
