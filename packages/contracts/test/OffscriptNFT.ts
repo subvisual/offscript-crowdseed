@@ -175,7 +175,7 @@ describe("OffscriptNFT", () => {
 
   describe("tokenURI", () => {
     it("gets the metadata for a given token", async () => {
-      nft.mintPublic({ value: price });
+      await nft.mintPublic({ value: price });
 
       const uri = await nft.tokenURI(1);
     });
