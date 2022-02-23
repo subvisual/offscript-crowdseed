@@ -69,14 +69,14 @@ class SectionMintedView extends React.Component {
           }
         ` }} />
         <span className="af-view">
-          <div className="af-class-section af-class-is--100padding af-class-wf-section">
-            <div className="af-class-_1077_container">
-              <div className="af-class-overflow_hidden">
-                <div className="af-class-heading--137 af-class-_24margin-bottom af-class-animation-fadein">NFT MINTED</div>
+          <div className="section is--100padding wf-section">
+            <div className="_1077_container">
+              <div className="overflow_hidden">
+                <div className="heading--137 _24margin-bottom animation-fadein">NFT MINTED</div>
                 {map(proxies['sock-hash'], props => <a href="#" {...{...props, className: `w-inline-block ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
-                  <div className="af-class-text--20">View on Etherscan</div>
+                  <div className="text--20">View on Etherscan</div>
                 </React.Fragment>}</a>)}
-                <div className="af-class-faq--question-title af-class-_16margin-top">Thank you! 💛</div>
+                <div className="faq--question-title _16margin-top">Thank you! 💛</div>
               </div>
             </div>
           </div>
