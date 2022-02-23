@@ -24,7 +24,9 @@ contract OffscriptNFT is ERC721, Ownable, IOffscriptNFT {
     //
     // Constants
     //
+
     string public constant description =
+        // solhint-disable-next-line max-line-length
         "Offscript Crowdseed NFT. Owned by early supporters of Offscript - An offsite for creatives in Web3. Owners of this NFT, get a discount during ticket sale";
     string public constant externalUrl = "https://offscript.web3creatives.com/";
 

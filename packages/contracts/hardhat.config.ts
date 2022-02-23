@@ -21,6 +21,10 @@ let networks: Record<string, any> = {
     accounts: {
       mnemonic: TESTNET_MNEMONIC,
     },
+    mining: {
+      auto: false,
+      interval: 5000,
+    },
   },
 };
 
