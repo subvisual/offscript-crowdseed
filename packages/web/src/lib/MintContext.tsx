@@ -68,13 +68,16 @@ export const MintProvider: FC = ({ children }) => {
       }
 
       try {
+        console.log("waiting");
         await mintTx.wait();
+        console.log("waited");
+
         setMined(true);
       } finally {
         setMined(false);
       }
     })();
-  });
+  }, [mintTx]);
 
   // set assets
   useEffect(() => {
