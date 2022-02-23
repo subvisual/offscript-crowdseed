@@ -8,7 +8,7 @@ const func: DeployFunction = async function (hre) {
   const owner = await read("OffscriptNFT", "owner");
 
   if (owner == deployer) {
-    execute(
+    await execute(
       "OffscriptNFT",
       { from: deployer, log: true },
       "transferOwnership",
