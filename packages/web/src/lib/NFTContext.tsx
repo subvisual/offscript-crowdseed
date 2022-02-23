@@ -16,7 +16,7 @@ interface INFTContext {
 import abi from "./abis.json";
 
 const Addresses: Record<number, string> = {
-  1: "TODO",
+  1: "0xe943A95D7aEB81aa7431d49e2Df048989C10FB70",
   31337: "0x546C74767d6d24ab4449334Ba74888e1218178D8",
 };
 
