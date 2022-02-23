@@ -116,7 +116,11 @@ describe("OffscriptNFT", () => {
 
   describe("mintPrivate", () => {
     it("mints with the correct IDs", async () => {
-      await nft.mintPrivate([alice.address, bob.address], [10, 20]);
+      await nft.mintPrivate(
+        [alice.address, bob.address],
+        [10, 20],
+        ["Foo", "Bar"]
+      );
 
       expect(await nft.ownerOf(41)).to.eq(alice.address);
       expect(await nft.ownerOf(42)).to.eq(bob.address);
@@ -125,21 +129,23 @@ describe("OffscriptNFT", () => {
       const metadata42 = await nft.getMetadata(42);
       expect(metadata41.discount).to.eq(10);
       expect(metadata42.discount).to.eq(20);
-      expect(metadata41.name).to.eq("");
-      expect(metadata42.name).to.eq("");
+      expect(metadata41.name).to.eq("Foo");
+      expect(metadata42.name).to.eq("Bar");
     });
 
     it("can mint many NFTs", async () => {
       const supply = await nft.totalPrivateSupply();
       for (let i = 0; i < supply; ++i) {
-        await nft.mintPrivate([alice.address], [10]);
+        await nft.mintPrivate([alice.address], [10], ["Foo"]);
       }
 
       expect(await nft.remainingPrivateSupply()).to.equal(0);
     });
 
     it("can only be called by the owner", async () => {
-      const action = nft.connect(alice).mintPrivate([alice.address], [10]);
+      const action = nft
+        .connect(alice)
+        .mintPrivate([alice.address], [10], ["Foo"]);
 
       await expect(action).to.be.reverted;
     });
@@ -181,7 +187,20 @@ describe("OffscriptNFT", () => {
       await nft.connect(alice).mintPublic({ value: price });
       await nft.connect(alice).mintPublic({ value: price });
 
-      // const uri = await nft.tokenURI(1);
+      const action = () => nft.sweep();
+
+      await expect(action).to.changeEtherBalances(
+        [owner, nft],
+        [parseUnits("0.09"), parseUnits("-0.09")]
+      );
+    });
+
+    it("is not callable by a non-owner", async () => {
+      await nft.connect(alice).mintPublic({ value: price });
+
+      const action = nft.connect(alice).sweep();
+
+      await expect(action).to.be.reverted;
     });
   });
 });

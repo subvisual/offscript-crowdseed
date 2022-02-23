@@ -28,47 +28,47 @@ contract OffscriptNFT is ERC721, Ownable, IOffscriptNFT {
         "Offscript Crowdseed NFT. Owned by early supporters of Offscript - An offsite for creatives in Web3. Owners of this NFT, get a discount during ticket sale";
     string public constant externalUrl = "https://offscript.web3creatives.com/";
 
-    string[40] publicNames = [
-        "Alder",
-        "Black alder",
-        "Common alder",
-        "False alder",
-        "Gray alder",
-        "Speckled alder",
-        "Alnus incana",
-        "Striped alder",
-        "White alder",
-        "Almond",
-        "Tall ambrosia",
-        "Amy root",
-        "Apple",
-        "Apple of Sodom",
-        "Apricot",
-        "Arfaj",
-        "Arizona sycamore",
-        "Arrowwood",
-        "Indian arrowwood",
-        "Ash",
-        "Black ash",
-        "Blue ash",
-        "Cane ash",
-        "Green ash",
-        "Maple ash",
-        "Red ash",
-        "River ash",
-        "Swamp ash",
-        "White ash",
-        "Water ash",
-        "Azolla",
-        "Carolina azolla",
-        "Bamboo",
-        "Banana",
-        "Baobab",
-        "Bay",
-        "Bay laurel",
-        "California bay",
+    string[] publicNames = [
+        "Bearberry",
         "Bean",
-        "Bearberry"
+        "California bay",
+        "Bay laurel",
+        "Bay",
+        "Baobab",
+        "Banana",
+        "Bamboo",
+        "Carolina azolla",
+        "Azolla",
+        "Water ash",
+        "White ash",
+        "Swamp ash",
+        "River ash",
+        "Red ash",
+        "Maple ash",
+        "Green ash",
+        "Cane ash",
+        "Blue ash",
+        "Black ash",
+        "Ash",
+        "Indian arrowwood",
+        "Arrowwood",
+        "Arizona sycamore",
+        "Arfaj",
+        "Apricot",
+        "Apple of Sodom",
+        "Apple",
+        "Amy root",
+        "Tall ambrosia",
+        "Almond",
+        "White alder",
+        "Striped alder",
+        "Alnus incana",
+        "Speckled alder",
+        "Gray alder",
+        "False alder",
+        "Common alder",
+        "Black alder",
+        "Alder"
     ];
 
     //
@@ -225,19 +225,17 @@ contract OffscriptNFT is ERC721, Ownable, IOffscriptNFT {
         );
 
         uint8 discount = calculateDiscount(random);
+        string memory name = publicNames[publicNames.length - 1];
 
-        _mintWithMetadata(
-            msg.sender,
-            newItemId,
-            discount,
-            publicNames[newItemId - 1]
-        );
+        _mintWithMetadata(msg.sender, newItemId, discount, name);
+        publicNames.pop();
         remainingPublicSupply--;
     }
 
     function mintPrivate(
         address[] calldata _addresses,
-        uint8[] calldata _discounts
+        uint8[] calldata _discounts,
+        string[] calldata _names
     ) external onlyOwner {
         uint8 length = uint8(_addresses.length);
 
@@ -252,7 +250,12 @@ contract OffscriptNFT is ERC721, Ownable, IOffscriptNFT {
         remainingPrivateSupply -= length;
 
         for (uint8 i = 0; i < length; i++) {
-            _mintWithMetadata(_addresses[i], nextId + i, _discounts[i], "");
+            _mintWithMetadata(
+                _addresses[i],
+                nextId + i,
+                _discounts[i],
+                _names[i]
+            );
         }
     }
 
