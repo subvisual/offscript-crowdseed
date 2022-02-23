@@ -36,7 +36,6 @@ if (!process.env.CI) {
 
 if (process.env.MAINNET_MNEMONIC) {
   networks["mainnet"] = {
-    chainId: 4,
     url: `https://mainnet.infura.io/v3/${INFURA_ETH_ID}`,
     accounts: {
       mnemonic: MAINNET_MNEMONIC,
