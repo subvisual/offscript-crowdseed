@@ -1,4 +1,5 @@
 import { task } from "hardhat/config";
+require('dotenv').config({path:"F:/ProjectoPessoal/OffScript/offscript/packages/contracts"+'/./../../.env'});
 
 import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";

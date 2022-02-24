@@ -74,8 +74,7 @@ describe("OffscriptPayment", () => {
     dai = IERC20__factory.connect(config.dai, owner);
   });
 
-  describe("constructor", () => {
-    it("sets all the right values", async () => {
+    it.only("sets all the right values", async () => {
       expect(await payment.dai()).to.equal(config.dai);
       expect(await payment.usdt()).to.equal(config.usdt);
       expect(await payment.usdc()).to.equal(config.usdc);
@@ -88,36 +87,79 @@ describe("OffscriptPayment", () => {
       expect(await payment.basePrice()).to.equal(200);
       expect(await payment.nft()).to.equal(nft.address);
     });
+
+  it.only("USDC payment without discount", async () => {
+     await ForkHelpers.mintToken(usdc, alice, parseUnits("1000.0", 6));
+     let balanceBefore = await usdc.balanceOf(alice.address);
+     console.log(balanceBefore);
+     await usdc.connect(alice).approve(payment.address, parseUnits("1000.0", 6));
+
+     await payment.connect(alice).payWithERC20(usdc.address,0);
+
+     const balance = await usdc.balanceOf(alice.address);
+     const balanceContract = await usdc.balanceOf(payment.address);
+
+    expect(balance).to.be.closeTo("800000000", 10**6);
+    console.log(balance);
+    expect(balanceContract).to.be.closeTo("200000000",10**6);
+    console.log(balanceContract);
   });
 
-  // it("USDC payment", async () => {
-  //   ForkHelpers.mintToken(usdc, alice, parseUnits("1000", 6));
-  //   await usdc.connect(alice).approve(payment.address, parseUnits("1000", 6));
+  /*it.only("USDT payment without discount", async () => {
+    await ForkHelpers.mintToken(usdt, bob, parseUnits("1000.0", 6));
+    let balanceBefore = await usdt.balanceOf(bob.address);
+    console.log(balanceBefore);
+    await usdt.connect(bob).approve(payment.address, parseUnits("1000.0", 6));
 
-  //   await payment.connect(alice).payWithERC20(usdc.address);
+    await payment.connect(bob).payWithERC20(usdt.address,0);
 
-  //   const balance = await usdc.balanceOf(payment.address);
+    const balance = await usdt.balanceOf(bob.address);
+    const balanceContract = await usdt.balanceOf(payment.address);
 
-  //   // TODO
-  //   expect(balance).to.be.closeTo(parseUnits("100", 6), 10000);
-  // });
+   expect(balance).to.be.closeTo("800000000", 10**6);
+   console.log(balance);
+   expect(balanceContract).to.be.closeTo("200000000",10**6);
+   console.log(balanceContract);
+ });
+*/
+ it.only("DAI payment without discount", async () => {
+  await ForkHelpers.mintToken(dai, alice, parseUnits("1000.0"));
+  let balanceBefore = await dai.balanceOf(alice.address);
+  console.log(balanceBefore);
+  await dai.connect(alice).approve(payment.address, parseUnits("1000.0"));
 
-  // it("token eth", async () => {
-  //   const price = ethers.BigNumber.from("0"); // TODO await payment.getPriceEth();
-  //   const balanceBefore = await alice.getBalance();
-  //   await payment.connect(alice).payWithEth({ value: price.mul(110).div(100) });
-  //   // TODO
-  //   const balanceAfter = await alice.getBalance();
+  await payment.connect(alice).payWithERC20(dai.address,0);
 
-  //   expect(balanceAfter).to.be.closeTo(balanceBefore.sub(price), 0.0011);
-  // });
+  const balance = await dai.balanceOf(alice.address);
 
-  // it("emits an event", async () => {
-  //   const price = ethers.BigNumber.from("0"); // TODO await payment.getPriceEth();
-  //   const tx = payment
-  //     .connect(alice)
-  //     .payWithEth({ value: price.mul(110).div(100) });
+  const balanceContract = await dai.balanceOf(payment.address);
 
-  //   // await expect(tx).to.emit('PaidWithEth').withArgs(alice.address, ....)
-  // });
+ expect(balance).to.be.closeTo(parseUnits("800"), parseUnits("1") as unknown as number);
+ console.log(balance);
+ expect(balanceContract).to.be.closeTo(parseUnits("200"), parseUnits("1") as unknown as number);
+ console.log(balanceContract);
+});
+
+it.only("Withdraw owner", async () => {
+  const action = payment.connect(alice).withdraw();
+
+  await expect(action).to.be.reverted;
+});
+
+  /*it.only("ETH payment without discount", async () => {
+    const price = parseUnits("200"); 
+    const balanceBefore = await alice.getBalance();
+    await payment.connect(alice).payWithEth(0,{ value: price.mul(110).div(100) });
+    // TODO
+    const balanceAfter = await alice.getBalance();
+
+   expect(balanceAfter).to.be.closeTo(balanceBefore.sub(price), parseUnits("0.0011") as unknown as number);
+  });
+
+  it.only("emits an event", async () => {
+    const price = parseUnits("200");  // TODO await payment.getPriceEth();
+    const tx = payment.connect(alice).payWithEth(0,{ value: price.mul(110).div(100) });
+
+    await expect(tx).to.emit(payment.address,'Payment').withArgs(alice.address, 200, 0, 0);
+  });*/
 });
