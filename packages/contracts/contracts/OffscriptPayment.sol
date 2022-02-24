@@ -43,6 +43,7 @@ contract OffscriptPayment is Ownable {
 
     // base ticket price, in USD
     uint256 public basePrice;
+    uint256 public extendedPrice;
 
     mapping(address => AggregatorV3Interface) public oracles;
 
@@ -55,7 +56,8 @@ contract OffscriptPayment is Ownable {
         AggregatorV3Interface oracleUsdt,
         AggregatorV3Interface oracleUsdc,
         IOffscriptNFT _nft,
-        uint256 _basePrice
+        uint256 _basePrice,
+        uint256 _extendedPrice
     ) Ownable() {
         // TODO address(0) checks
         nft = _nft;
@@ -69,6 +71,7 @@ contract OffscriptPayment is Ownable {
         oracles[address(_usdc)] = oracleUsdc;
 
         basePrice = _basePrice;
+        extendedPrice = _extendedPrice;
     }
 
     function checkForNft(uint256 tokenId) internal view returns (uint256) {
@@ -76,7 +79,7 @@ contract OffscriptPayment is Ownable {
         return discount;
     }
 
-    function payWithEth(uint256 tokenId) external payable {
+    function payWithEth(uint256 tokenId, bool _extended) external payable {
         uint256 decimals = 18;
 
         if (tokenId > 0) {
@@ -86,16 +89,20 @@ contract OffscriptPayment is Ownable {
 
         discount = discount * 10**(decimals - 2);
 
-        uint256 amount = getPriceEth();
+        uint256 amount = getPriceEth(_extended);
 
         uint256 discountInValue = amount * discount;
 
         emit Payment(msg.sender, amount - discountInValue, tokenId, address(0));
     }
 
-    function payWithERC20(address _token, uint256 tokenId) external {
+    function payWithERC20(
+        address _token,
+        uint256 tokenId,
+        bool _extended
+    ) external {
         require(_token != address(0x0));
-        AggregatorV3Interface oracle = AggregatorV3Interface(oracles[_token]);
+        AggregatorV3Interface oracle = oracles[_token];
 
         require(address(oracle) != address(0x0), "token not supported");
 
@@ -109,7 +116,7 @@ contract OffscriptPayment is Ownable {
         discount = discount * 10**(decimals - 2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = getPriceERC20(_token);
+        uint256 amount = getPriceERC20(_token, _extended);
 
         uint256 discountInValue = amount * discount;
 
@@ -131,27 +138,33 @@ contract OffscriptPayment is Ownable {
         payable(msg.sender).transfer(address(this).balance);
     }
 
-    function getPriceEth() public view returns (uint256) {
-        AggregatorV3Interface oracle = AggregatorV3Interface(
-            oracles[address(0x0)]
-        );
+    function getPriceEth(bool _extended) public view returns (uint256) {
+        AggregatorV3Interface oracle = oracles[address(0x0)];
 
         (, int256 price, , , ) = oracle.latestRoundData();
 
+        uint256 usdPrice = _extended ? extendedPrice : basePrice;
+
         return
-            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+            (((usdPrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
                 10**18) / 10**oracle.decimals();
     }
 
-    function getPriceERC20(address token) public view returns (uint256) {
-        AggregatorV3Interface oracle = AggregatorV3Interface(oracles[token]);
+    function getPriceERC20(address token, bool _extended)
+        public
+        view
+        returns (uint256)
+    {
+        AggregatorV3Interface oracle = oracles[token];
 
         uint256 decimals = IERC20Metadata(token).decimals();
 
         (, int256 price, , , ) = oracle.latestRoundData();
 
+        uint256 usdPrice = _extended ? extendedPrice : basePrice;
+
         return
-            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+            (((usdPrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
                 10**decimals) / 10**oracle.decimals();
     }
 }

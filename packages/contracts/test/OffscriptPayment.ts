@@ -6,12 +6,14 @@ import type {
   OffscriptPayment,
   IERC20,
   OffscriptNFT,
+  IERC20Metadata,
 } from "../typechain-types";
 import { IERC20__factory } from "../typechain-types";
 
 import * as ForkHelpers from "./forkHelpers";
 
 const { parseUnits } = ethers.utils;
+const { MaxUint256 } = ethers.constants;
 
 describe("OffscriptPayment", () => {
   const USDC_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48";
@@ -66,15 +68,24 @@ describe("OffscriptPayment", () => {
       config.oracleUsdt,
       config.oracleUsdc,
       nft.address,
-      200
+      800,
+      950
     )) as OffscriptPayment;
 
     usdc = IERC20__factory.connect(config.usdc, owner);
     usdt = IERC20__factory.connect(config.usdt, owner);
     dai = IERC20__factory.connect(config.dai, owner);
+
+    await ForkHelpers.mintToken(usdc, alice, parseUnits("1000000", 6));
+    await ForkHelpers.mintToken(usdt, alice, parseUnits("1000000", 6));
+    await ForkHelpers.mintToken(dai, alice, parseUnits("1000000", 18));
+
+    await usdc.connect(alice).approve(payment.address, MaxUint256);
+    await dai.connect(alice).approve(payment.address, MaxUint256);
+    await usdt.connect(alice).approve(payment.address, MaxUint256);
   });
 
-  it.only("sets all the right values", async () => {
+  it("sets all the right values", async () => {
     expect(await payment.dai()).to.equal(config.dai);
     expect(await payment.usdt()).to.equal(config.usdt);
     expect(await payment.usdc()).to.equal(config.usdc);
@@ -84,21 +95,111 @@ describe("OffscriptPayment", () => {
     expect(await payment.oracles(ethers.constants.AddressZero)).to.equal(
       config.oracleEth
     );
-    expect(await payment.basePrice()).to.equal(200);
+    expect(await payment.basePrice()).to.equal(800);
+    expect(await payment.extendedPrice()).to.equal(950);
     expect(await payment.nft()).to.equal(nft.address);
   });
 
-  it.only("USDC payment without discount", async () => {
-    await ForkHelpers.mintToken(usdc, alice, parseUnits("1000.0", 6));
-    await usdc.connect(alice).approve(payment.address, parseUnits("1000.0", 6));
+  ["regular", "extended"].forEach((ticketType) => {
+    [0, 10, 20, 50, 100].forEach((discount) => {
+      it.only(`ETH payment, ${ticketType} ticket, ${
+        discount ? `with ${discount}%` : "without"
+      } discount`, async () => {
+        let nftId = 0;
+        // mint NFT
+        if (discount) {
+          await nft.mintPrivate([alice.address], [discount], ["foo"]);
+          nftId = 41;
+        }
 
-    await payment.connect(alice).payWithERC20(usdc.address, 0);
+        let expectedPrice =
+          ticketType == "regular"
+            ? await payment.basePrice()
+            : await payment.extendedPrice();
+
+        if (discount) {
+          expectedPrice = expectedPrice.sub(
+            expectedPrice.mul(discount).div(100)
+          );
+        }
+
+        const extended = ticketType == "regular" ? true : false;
+
+        const tx = payment.connect(alice).payWithEth(nftId, extended);
+        await tx;
+
+        const balance = await ethers.provider.getBalance(payment.address);
+
+        expect(balance).to.be.closeTo(
+          parseUnits("0.3"),
+          parseUnits("0.01") as unknown as number
+        );
+      });
+
+      ["USDC", "DAI", "USDT"].forEach((currency) => {
+        it.only(`${currency} payment, ${ticketType} ticket, ${
+          discount ? `with ${discount}%` : "without"
+        } discount`, async () => {
+          const contracts: Record<string, [IERC20, number]> = {
+            DAI: [dai, 18],
+            USDT: [usdt, 6],
+            USDC: [usdc, 6],
+          };
+
+          let nftId = 0;
+          // mint NFT
+          if (discount) {
+            await nft.mintPrivate([alice.address], [discount], ["foo"]);
+            nftId = 41;
+          }
+
+          let expectedPrice =
+            ticketType == "regular"
+              ? await payment.basePrice()
+              : await payment.extendedPrice();
+
+          if (discount) {
+            expectedPrice = expectedPrice.sub(
+              expectedPrice.mul(discount).div(100)
+            );
+          }
+
+          const extended = ticketType == "regular" ? true : false;
+          const [token, decimals] = contracts[currency];
+          // const decimals = (token as IERC20Metadata).decimals();
+
+          // make payment
+
+          await payment
+            .connect(alice)
+            .payWithERC20(token.address, nftId, extended);
+
+          const balance = await token.balanceOf(payment.address);
+
+          expect(balance).to.be.closeTo(
+            parseUnits(expectedPrice.toString(), decimals),
+            parseUnits("1", decimals) as unknown as number
+          );
+        });
+      });
+    });
+  });
+
+  describe("USDC payment", () => {});
+  it("USDC payment without discount", async () => {
+    await payment.connect(alice).payWithERC20(usdc.address, 0, false);
 
     const balance = await usdc.balanceOf(alice.address);
     const balanceContract = await usdc.balanceOf(payment.address);
 
-    expect(balance).to.be.closeTo("800000000", 10 ** 6);
-    expect(balanceContract).to.be.closeTo("200000000", 10 ** 6);
+    expect(balance).to.be.closeTo(
+      parseUnits("200", 6),
+      parseUnits("1", 6) as unknown as number
+    );
+    expect(balanceContract).to.be.closeTo(
+      parseUnits("800", 6),
+      parseUnits("1", 6) as unknown as number
+    );
   });
 
   /*it.only("USDT payment without discount", async () => {
@@ -119,27 +220,24 @@ describe("OffscriptPayment", () => {
  });
 */
 
-  it.only("DAI payment without discount", async () => {
-    await ForkHelpers.mintToken(dai, alice, parseUnits("1000.0"));
-    await dai.connect(alice).approve(payment.address, parseUnits("1000.0"));
-
-    await payment.connect(alice).payWithERC20(dai.address, 0);
+  it("DAI payment without discount", async () => {
+    await payment.connect(alice).payWithERC20(dai.address, 0, false);
 
     const balance = await dai.balanceOf(alice.address);
 
     const balanceContract = await dai.balanceOf(payment.address);
 
     expect(balance).to.be.closeTo(
-      parseUnits("800"),
-      parseUnits("1") as unknown as number
+      parseUnits("200"),
+      parseUnits("2") as unknown as number
     );
     expect(balanceContract).to.be.closeTo(
-      parseUnits("200"),
-      parseUnits("1") as unknown as number
+      parseUnits("800"),
+      parseUnits("2") as unknown as number
     );
   });
 
-  it.only("Withdraw owner", async () => {
+  it("Withdraw owner", async () => {
     const action = payment.connect(alice).withdraw();
 
     await expect(action).to.be.reverted;
