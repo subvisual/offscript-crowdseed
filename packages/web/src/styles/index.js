@@ -11,11 +11,11 @@ const styles = [
   },
   {
     type: 'href',
-    body: '/css/subvisual-holidays.webflow.css',
+    body: '/css/offscript-website-325e235569d243ef7486b.webflow.css',
   },
   {
     type: 'sheet',
-    body: '.af-view *{text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;-moz-font-feature-settings:"smcp" 1,"onum" 1,"frac" 1,"kern" 1,"liga" 1,"dlig" 1,"swsh" 1;-moz-font-feature-settings:"smcp=1, onum=1, frac=1, kern=1, liga=1, dlig=1, swsh=1";-ms-font-feature-settings:"smcp" 1,"onum" 1,"frac" 1,"kern" 1,"liga" 1,"dlig" 1,"swsh" 1;-o-font-feature-settings:"smcp" 1,"onum" 1,"frac" 1,"kern" 1,"liga" 1,"dlig" 1,"swsh" 1;-webkit-font-feature-settings:"smcp" 1,"onum" 1,"frac" 1,"kern" 1,"liga" 1,"dlig" 1,"swsh" 1;font-feature-settings:"smcp" 1,"onum" 1,"frac" 1,"kern" 1,"liga" 1,"dlig" 1,"swsh" 1;font-feature-settings:normal}.af-view .navbar-background{backdrop-filter:blur(20px)}.af-view .load-background{animation:colorBackgroundMove 1.5s cubic-bezier(.22,1,.36,1);animation-delay:.8s;animation-fill-mode:forwards}@keyframes colorBackgroundMove{0%{width:100vw;height:100vh;margin-left:0 auto;border-radius:0}100%{width:97vw;height:97vh;margin:0 1.5%;border-radius:0 0 60px 60px}}.af-view .w-webflow-badge{display:none!important}',
+    body: '.af-view *{text-rendering:optimizeLegibility;-webkit-font-smoothing:antialiased;font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale}',
   },
 ]
 

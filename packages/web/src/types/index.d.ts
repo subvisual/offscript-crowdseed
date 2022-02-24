@@ -1,23 +1,31 @@
 declare namespace JSX {
   interface IntrinsicElements {
-    "af-metamask-connect-btn": DetailedHTMLProps<
+    "sock-connect": DetailedHTMLProps<
       HTMLAttributes<HTMLButtonElement>,
       HTMLElement
     >;
-    "af-metamask-connect-success": DetailedHTMLProps<
+    "sock-address": DetailedHTMLProps<
       HTMLAttributes<HTMLDivElement>,
       HTMLElement
     >;
-    "af-mint-btn": DetailedHTMLProps<
-      HTMLAttributes<HTMLButtonElement>,
+    "sock-img": DetailedHTMLProps<
+      HTMLAttributes<HTMLImageElement>,
       HTMLElement
     >;
-    "af-mint-success": DetailedHTMLProps<
+    "sock-nft-name": DetailedHTMLProps<
       HTMLAttributes<HTMLDivElement>,
       HTMLElement
     >;
-    "af-refresh-btn": DetailedHTMLProps<
+    "sock-discount": DetailedHTMLProps<
+      HTMLAttributes<HTMLDivElement>,
+      HTMLElement
+    >;
+    "sock-mint": DetailedHTMLProps<
       HTMLAttributes<HTMLButtonElement>,
+      HTMLElement
+    >;
+    "sock-hash": DetailedHTMLProps<
+      HTMLAttributes<HTMLLinkElement>,
       HTMLElement
     >;
   }

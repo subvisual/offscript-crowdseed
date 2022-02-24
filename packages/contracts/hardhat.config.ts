@@ -14,12 +14,12 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const { DEV_MNEMONIC, TESTNET_MNEMONIC, INFURA_ETH_ID } = process.env;
+const { TESTNET_MNEMONIC, INFURA_ETH_ID, MAINNET_MNEMONIC } = process.env;
 
 let networks: Record<string, any> = {
   hardhat: {
     accounts: {
-      mnemonic: DEV_MNEMONIC,
+      mnemonic: TESTNET_MNEMONIC,
     },
   },
 };
@@ -30,6 +30,15 @@ if (!process.env.CI) {
     url: `https://rinkeby.infura.io/v3/${INFURA_ETH_ID}`,
     accounts: {
       mnemonic: TESTNET_MNEMONIC,
+    },
+  };
+}
+
+if (process.env.MAINNET_MNEMONIC) {
+  networks["mainnet"] = {
+    url: `https://mainnet.infura.io/v3/${INFURA_ETH_ID}`,
+    accounts: {
+      mnemonic: MAINNET_MNEMONIC,
     },
   };
 }

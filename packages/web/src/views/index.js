@@ -1,8 +1,10 @@
 /* eslint-disable */
 
-export { default as AfActionsView } from './AfActionsView'
-export { default as AfGridView } from './AfGridView'
-export { default as NotFoundView } from './NotFoundView'
+export { default as SectionConnectView } from './SectionConnectView'
+export { default as SectionWalletView } from './SectionWalletView'
+export { default as SectionMintView } from './SectionMintView'
+export { default as SectionMintedView } from './SectionMintedView'
+export { default as SectionTicketsView } from './SectionTicketsView'
 export { default as IndexView } from './IndexView'
 
 /* eslint-enable */
