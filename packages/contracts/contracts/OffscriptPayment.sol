@@ -25,10 +25,11 @@ contract OffscriptPayment is Ownable {
 
     //Save some info?
     event Payment(
-        address payer,
-        uint256 amount,
-        uint256 nftId,
-        address tokenId
+        address indexed payer,
+        uint256 indexed nftId,
+        address indexed tokenId,
+        bool extended,
+        uint256 amount
     );
 
     //
@@ -52,6 +53,8 @@ contract OffscriptPayment is Ownable {
     uint16 public sold;
 
     mapping(address => AggregatorV3Interface) public oracles;
+
+    mapping(uint256 => bool) public used;
 
     constructor(
         IERC20 _dai,
@@ -93,6 +96,10 @@ contract OffscriptPayment is Ownable {
     }
 
     function checkForNft(uint256 tokenId) internal view returns (uint256) {
+        if (tokenId == 0) {
+            return 0;
+        }
+
         (uint16 discount, ) = nft.getMetadata(tokenId);
         return discount;
     }
@@ -101,20 +108,20 @@ contract OffscriptPayment is Ownable {
         require(sold < supply, "no tickets available");
         if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
+            require(!used[tokenId], "nft already used");
+            used[tokenId] = true;
         }
-        uint256 discount = checkForNft(tokenId);
-        uint256 amount = getPriceEth(_extended);
-        uint256 discountValue = (amount * discount) / 100;
-        uint256 finalValue = amount - discountValue;
-        sold++;
+
+        uint256 finalValue = getPriceEth(tokenId, _extended);
 
         require(msg.value >= finalValue, "not enough sent");
 
+        sold++;
         if (msg.value > finalValue) {
             payable(msg.sender).transfer(msg.value - finalValue);
         }
 
-        emit Payment(msg.sender, finalValue, tokenId, address(0));
+        emit Payment(msg.sender, tokenId, address(0), _extended, finalValue);
     }
 
     function payWithERC20(
@@ -130,46 +137,60 @@ contract OffscriptPayment is Ownable {
 
         if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
+            require(!used[tokenId], "nft already used");
+            used[tokenId] = true;
         }
-        uint256 discount = checkForNft(tokenId);
-        uint256 amount = getPriceERC20(_token, _extended);
-        uint256 discountValue = (amount * discount) / 100;
-        uint256 finalValue = amount - discountValue;
+        uint256 finalValue = getPriceERC20(_token, tokenId, _extended);
         sold++;
 
         IERC20(_token).safeTransferFrom(msg.sender, address(this), finalValue);
 
-        emit Payment(msg.sender, finalValue, tokenId, _token);
+        emit Payment(msg.sender, tokenId, _token, _extended, finalValue);
     }
 
-    function getPriceEth(bool _extended) public view returns (uint256) {
-        AggregatorV3Interface oracle = oracles[address(0x0)];
-
-        (, int256 price, , , ) = oracle.latestRoundData();
-
-        uint256 usdPrice = _extended ? extendedPrice : basePrice;
-
-        return
-            (((usdPrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
-                10**18) / 10**oracle.decimals();
-    }
-
-    function getPriceERC20(address token, bool _extended)
+    function getPriceEth(uint256 tokenId, bool _extended)
         public
         view
         returns (uint256)
     {
+        AggregatorV3Interface oracle = oracles[address(0x0)];
+
+        (, int256 price, , , ) = oracle.latestRoundData();
+
+        uint256 finalValue = getPriceUSD(tokenId, _extended);
+
+        return
+            (((finalValue * 10**(oracle.decimals() * 2)) / uint256(price)) *
+                10**18) / 10**oracle.decimals();
+    }
+
+    function getPriceERC20(
+        address token,
+        uint256 tokenId,
+        bool _extended
+    ) public view returns (uint256) {
         AggregatorV3Interface oracle = oracles[token];
 
         uint256 decimals = IERC20Metadata(token).decimals();
 
         (, int256 price, , , ) = oracle.latestRoundData();
 
-        uint256 usdPrice = _extended ? extendedPrice : basePrice;
+        uint256 finalValue = getPriceUSD(tokenId, _extended);
 
         return
-            (((usdPrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+            (((finalValue * 10**(oracle.decimals() * 2)) / uint256(price)) *
                 10**decimals) / 10**oracle.decimals();
+    }
+
+    function getPriceUSD(uint256 tokenId, bool _extended)
+        public
+        view
+        returns (uint256)
+    {
+        uint256 usdPrice = _extended ? extendedPrice : basePrice;
+        uint256 discount = checkForNft(tokenId);
+        uint256 discountValue = (usdPrice * discount) / 100;
+        return usdPrice - discountValue;
     }
 
     function sweep() external onlyOwner {

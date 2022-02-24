@@ -9,19 +9,19 @@ const scripts = [
 
 let Controller
 
-class SectionMintedView extends React.Component {
+class SectionTicketSuccessView extends React.Component {
   static get Controller() {
     if (Controller) return Controller
 
     try {
-      Controller = require('../controllers/SectionMintedController')
+      Controller = require('../controllers/SectionTicketSuccessController')
       Controller = Controller.default || Controller
 
       return Controller
     }
     catch (e) {
       if (e.code == 'MODULE_NOT_FOUND') {
-        Controller = SectionMintedView
+        Controller = SectionTicketSuccessView
 
         return Controller
       }
@@ -49,8 +49,9 @@ class SectionMintedView extends React.Component {
   }
 
   render() {
-    const proxies = SectionMintedView.Controller !== SectionMintedView ? transformProxies(this.props.children) : {
+    const proxies = SectionTicketSuccessView.Controller !== SectionTicketSuccessView ? transformProxies(this.props.children) : {
       'sock-hash': [],
+      'sock-ticket-hash': [],
     }
 
     return (
@@ -69,15 +70,15 @@ class SectionMintedView extends React.Component {
           }
         ` }} />
         <span className="af-view">
-          <div className="section is--100padding wf-section">
+          <div className="section is--80padding wf-section">
             <div className="_1077_container">
               <div className="overflow_hidden">
-                <div className="heading--137 _24margin-bottom animation-fadein">NFT MINTED</div>
-                {map(proxies['sock-hash'], props => <a href="#" {...{...props, className: `w-inline-block ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
-                  <div className="text--20">View on Etherscan</div>
-                </React.Fragment>}</a>)}
-                <div className="faq--question-title _16margin-top">Thank you! 💛</div>
+                <div className="heading--137 _24margin-bottom animation-fadein">TICKET PURCHASED</div>
               </div>
+              {map(proxies['sock-hash'], props => <a href="#" {...{...props, className: `w-inline-block ${props.className || ''}`}}>{createScope(props.children, proxies => <React.Fragment>
+                {map(proxies['sock-ticket-hash'], props => <div {...{...props, className: `text--20 ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>View on Etherscan</React.Fragment>}</div>)}
+              </React.Fragment>)}</a>)}
+              <div className="faq--question-title _16margin-top">Thank you! Your ticket will arrive in the next few hours 💛</div>
             </div>
           </div>
         </span>
@@ -86,6 +87,6 @@ class SectionMintedView extends React.Component {
   }
 }
 
-export default SectionMintedView
+export default SectionTicketSuccessView
 
 /* eslint-enable */

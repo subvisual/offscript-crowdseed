@@ -102,8 +102,74 @@ describe("OffscriptPayment", () => {
     expect(await payment.supply()).to.equal(50);
   });
 
+  describe("getPriceEth", () => {
+    it("works without an NFT", async () => {
+      const price = await payment.getPriceEth(0, false);
+
+      expect(price).to.be.closeTo(
+        parseUnits("0.28"),
+        parseUnits("0.01") as unknown as number
+      );
+    });
+
+    it("works with a 50% discount", async () => {
+      await nft.mintPrivate([alice.address], [50], ["Foo"]);
+
+      const price = await payment.connect(alice).getPriceEth(41, false);
+
+      expect(price).to.be.closeTo(
+        parseUnits("0.14"),
+        parseUnits("0.01") as unknown as number
+      );
+    });
+
+    it("works with a 100% discount", async () => {
+      await nft.mintPrivate([alice.address], [100], ["Foo"]);
+
+      const price = await payment.connect(alice).getPriceEth(41, false);
+
+      expect(price).to.eq(0);
+    });
+  });
+
+  describe("getPriceERC20", () => {
+    it("works without an NFT", async () => {
+      const price = await payment
+        .connect(alice)
+        .getPriceERC20(usdc.address, 0, false);
+
+      expect(price).to.be.closeTo(
+        parseUnits("800", 6),
+        parseUnits("2", 6) as unknown as number
+      );
+    });
+
+    it("works with a 50% discount", async () => {
+      await nft.mintPrivate([alice.address], [50], ["Foo"]);
+
+      const price = await payment
+        .connect(alice)
+        .getPriceERC20(usdc.address, 41, false);
+
+      expect(price).to.be.closeTo(
+        parseUnits("400", 6),
+        parseUnits("2", 6) as unknown as number
+      );
+    });
+
+    it("works with a 100% discount", async () => {
+      await nft.mintPrivate([alice.address], [100], ["Foo"]);
+
+      const price = await payment
+        .connect(alice)
+        .getPriceERC20(usdc.address, 41, false);
+
+      expect(price).to.eq(0);
+    });
+  });
+
   ["regular", "extended"].forEach((ticketType) => {
-    [0, 10, 20, 50, 100].forEach((discount) => {
+    [0, 20, 100].forEach((discount) => {
       it(`ETH payment, ${ticketType} ticket, ${
         discount ? `with ${discount}%` : "without"
       } discount`, async () => {
@@ -244,6 +310,23 @@ describe("OffscriptPayment", () => {
       await expect(
         payment.connect(alice).payWithEth(0, false, { value: parseUnits("1") })
       ).to.be.revertedWith("no tickets available");
+    });
+  });
+
+  describe("used", () => {
+    it("cannot buy twice with the same NFT", async () => {
+      await nft.mintPrivate([alice.address], [50], ["Foo"]);
+
+      await payment
+        .connect(alice)
+        .payWithEth(41, false, { value: parseUnits("1") });
+
+      const tx = payment
+        .connect(alice)
+        .payWithEth(41, false, { value: parseUnits("1") });
+
+      await expect(tx).to.be.revertedWith("nft already used");
+      expect(await payment.used(41)).to.be.true;
     });
   });
 });

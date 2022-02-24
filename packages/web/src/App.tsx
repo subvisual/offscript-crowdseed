@@ -2,9 +2,9 @@ import type { FC } from "react";
 
 import "./App.css";
 
-import { NFTProvider } from "./lib/NFTContext";
+import { ContractsProvider } from "./lib/ContractsContext";
 import { MintProvider } from "./lib/MintContext";
-import { TestView } from "./TestView";
+import { TicketProvider } from "./lib/TicketContext";
 import IndexView from "./views/IndexView";
 
 import "./App.css";
@@ -12,11 +12,13 @@ import "./App.css";
 const App: FC = () => {
   return (
     <div>
-      <NFTProvider>
+      <ContractsProvider>
         <MintProvider>
-          <IndexView />
+          <TicketProvider>
+            <IndexView />
+          </TicketProvider>
         </MintProvider>
-      </NFTProvider>
+      </ContractsProvider>
     </div>
   );
 };

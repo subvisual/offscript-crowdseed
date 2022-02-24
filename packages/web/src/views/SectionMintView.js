@@ -69,7 +69,7 @@ class SectionMintView extends React.Component {
           }
         ` }} />
         <span className="af-view">
-          <div id="tickets" className="section is--20padding wf-section">
+          <div id="tickets" className="section is--20padding hide wf-section">
             <div className="overflow_hidden">
               <div className="marquee-wrapper is--1">
                 <div className="heading--154 is--marquee">Eclectic+creative+web3+</div>

@@ -14,7 +14,8 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   }
 });
 
-const { TESTNET_MNEMONIC, INFURA_ETH_ID, MAINNET_MNEMONIC } = process.env;
+const { TESTNET_MNEMONIC, INFURA_ETH_ID, MAINNET_MNEMONIC, MAINNET_ENDPOINT } =
+  process.env;
 
 let networks: Record<string, any> = {
   hardhat: {

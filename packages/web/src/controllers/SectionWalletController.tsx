@@ -6,10 +6,12 @@ import { useWeb3React } from "@web3-react/core";
 import SectionWalletView from "../views/SectionWalletView";
 
 import { useMint } from "../lib/MintContext";
+import { useTicket } from "../lib/TicketContext";
 
 const SectionWalletController: FC = () => {
   const { account } = useWeb3React<Web3Provider>();
   const { bestAsset } = useMint();
+  const { hasTicket } = useTicket();
 
   if (!account) {
     return <></>;
@@ -28,6 +30,7 @@ const SectionWalletController: FC = () => {
       {bestAsset && (
         <sock-discount>{bestAsset.discount}% discount</sock-discount>
       )}
+      {hasTicket && <sock-already-ticket />}
     </SectionWalletView>
   );
 };

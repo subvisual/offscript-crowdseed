@@ -1,5 +1,5 @@
 import { FC } from "react";
-import { useEffect, useCallback, useState } from "react";
+import { useEffect, useCallback } from "react";
 
 import { useWeb3React } from "@web3-react/core";
 import { Web3Provider } from "@ethersproject/providers";

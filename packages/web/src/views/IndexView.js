@@ -4,9 +4,11 @@ import React from "react";
 import { createScope, map, transformProxies } from "./helpers";
 import SectionConnectView from "./SectionConnectView";
 import SectionWalletView from "./SectionWalletView";
+import SectionActionsView from "./SectionActionsView";
 import SectionMintView from "./SectionMintView";
-import SectionMintedView from "./SectionMintedView";
-import SectionTicketsView from "./SectionTicketsView";
+import SectionTicketView from "./SectionTicketView";
+import SectionMintSuccessView from "./SectionMintSuccessView";
+import SectionTicketSuccessView from "./SectionTicketSuccessView";
 
 const scripts = [
   {
@@ -110,7 +112,7 @@ class IndexView extends React.Component {
                     <img
                       src="images/OffScript-Logo-2.png"
                       loading="lazy"
-                      sizes="(max-width: 479px) 56vw, (max-width: 767px) 44vw, (max-width: 991px) 27vw, (max-width: 1919px) 15vw, 11vw"
+                      sizes="(max-width: 479px) 55vw, (max-width: 767px) 43vw, (max-width: 991px) 27vw, (max-width: 1919px) 14vw, 11vw"
                       srcSet="images/OffScript-Logo-2-p-500.png 500w, images/OffScript-Logo-2-p-800.png 800w, images/OffScript-Logo-2-p-1080.png 1080w, images/OffScript-Logo-2.png 2708w"
                       alt="Offscript logo"
                       className="brand_img"
@@ -118,39 +120,78 @@ class IndexView extends React.Component {
                   </a>
                 </div>
               </div>
-              <div className="section is--100padding wf-section">
+              <div className="section is--80padding no-bottom wf-section">
                 <div className="_1077_container">
-                  <div className="overflow_hidden">
-                    <div className="heading--137 _24margin-bottom">
-                      WELCOME TO THE CROWDSEED
+                  <div className="heading--137 _24margin-bottom">
+                    OFFSCRIPTNFT AND TICKETS
+                  </div>
+                  <div className="grid-2 _3 _60margin-top">
+                    <div
+                      id="w-node-_3dc5a527-52b0-4f8c-ecfd-3fbeff791505-6fc6f102"
+                      className="left"
+                    >
+                      <div className="faq--question-title">
+                        Mint the NFT:
+                        <br />
+                      </div>
+                      <div className="text--20">
+                        · Show your support for, and interest in Offscript
+                        <br />· Buy a beautiful art work by @tasty_plots
+                        <br />· Get a discount of 10%, 25%, 40% or 100%
+                        <br />‍<br />
+                        <a
+                          href="https://mirror.xyz/0x8C4F71B3cF6a76dE2CC239a6fA84E1a80e589598/Tya8b-rNzMWGQfOZZzpsV8BKnb8ZKbXIyZB9F8eVXgc"
+                          target="_blank"
+                        >
+                          More info here
+                        </a>
+                        <br />
+                      </div>
                     </div>
-                    <div className="faq--question-title">
-                      With the Offscript NFT Crowdseed you can:
-                      <br />
+                    <div
+                      id="w-node-_3dc5a527-52b0-4f8c-ecfd-3fbeff791524-6fc6f102"
+                      className="vertical-line"
+                    />
+                    <div
+                      id="w-node-_3dc5a527-52b0-4f8c-ecfd-3fbeff791525-6fc6f102"
+                      className="right"
+                    >
+                      <div className="overflow_hidden">
+                        <div className="faq--question-title">
+                          Buy the ticket:
+                          <br />
+                        </div>
+                        <div className="text--20">
+                          · Apply OffscriptNFT discount
+                          <br />· Buy with ETH, DAI, USDC, USDT
+                          <br />· Buy with fiat{" "}
+                          <a href="https://ti.to/offscript" target="_blank">
+                            here
+                          </a>
+                          <br />‍<br />
+                          <a
+                            href="https://mirror.xyz/0x8C4F71B3cF6a76dE2CC239a6fA84E1a80e589598/3BufLjx7teLfeIR4U6dPcD2NIMFZp7siASk1wDPXXbk"
+                            target="_blank"
+                          >
+                            More info here
+                          </a>
+                          <br />
+                        </div>
+                      </div>
                     </div>
-                    <div className="text--20">
-                      - Show your support for, and interest in Offscript
-                      <br />- Buy a beautiful art work by @tasty_plots
-                      <br />- Get a discount of 10%, 25%, 40% or 100%
-                      <br />‍<br />
-                      <a
-                        href="https://mirror.xyz/0x8C4F71B3cF6a76dE2CC239a6fA84E1a80e589598/Tya8b-rNzMWGQfOZZzpsV8BKnb8ZKbXIyZB9F8eVXgc"
-                        target="_blank"
-                      >
-                        More info here
-                      </a>
-                      <br />
-                      <br />
-                      Connect your wallet to Buy and Mint an NFT
-                    </div>
+                  </div>
+                  <div className="text--20 _100margin-top align-center">
+                    Connect your wallet to Mint an OffscriptNFT or Buy a Ticket{" "}
                   </div>
                 </div>
               </div>
               <SectionConnectView.Controller />
               <SectionWalletView.Controller />
+              <SectionActionsView.Controller />
               <SectionMintView.Controller />
-              <SectionMintedView.Controller />
-              <SectionTicketsView.Controller />
+              <SectionTicketView.Controller />
+              <SectionMintSuccessView.Controller />
+              <SectionTicketSuccessView.Controller />
               <div className="section is--footer wf-section">
                 <div className="_1360_container is--20padding-tablet">
                   <div className="_200-spacing" />
@@ -162,7 +203,7 @@ class IndexView extends React.Component {
                       <img
                         src="images/OffScript-Logo-2.png"
                         loading="lazy"
-                        sizes="(max-width: 479px) 89vw, (max-width: 767px) 91vw, (max-width: 991px) 95vw, (max-width: 1919px) 94vw, (max-width: 3814px) 71vw, 2708px"
+                        sizes="(max-width: 479px) 89vw, (max-width: 767px) 91vw, (max-width: 991px) 95vw, (max-width: 1919px) 93vw, (max-width: 3868px) 70vw, 2708px"
                         srcSet="images/OffScript-Logo-2-p-500.png 500w, images/OffScript-Logo-2-p-800.png 800w, images/OffScript-Logo-2-p-1080.png 1080w, images/OffScript-Logo-2.png 2708w"
                         alt="Offscript logo"
                         className="footer_logo animation-fadein"
@@ -194,6 +235,22 @@ class IndexView extends React.Component {
                           className="credentialslink"
                         >
                           Privacy Policy
+                        </a>
+                      </div>
+                    </div>
+                    <div
+                      id="w-node-_6fc7bdae-7f9d-4b12-9c8e-da48b4f287ac-6fc6f102"
+                      className="overflow_hidden"
+                    >
+                      <div className="text--20 is--50opacity animation-fadein">
+                        <a
+                          href="https://web3creatives.notion.site/Offscript-Terms-and-conditions-569cc25f4714418b9055bdac45ffbc94"
+                          rel="noopener"
+                          aria-label="Privacy Policy"
+                          target="_blank"
+                          className="credentialslink"
+                        >
+                          Terms &amp; Conditions
                         </a>
                       </div>
                     </div>
