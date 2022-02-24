@@ -74,50 +74,90 @@ describe("OffscriptPayment", () => {
     dai = IERC20__factory.connect(config.dai, owner);
   });
 
-  describe("constructor", () => {
-    it("sets all the right values", async () => {
-      expect(await payment.dai()).to.equal(config.dai);
-      expect(await payment.usdt()).to.equal(config.usdt);
-      expect(await payment.usdc()).to.equal(config.usdc);
-      expect(await payment.oracles(config.dai)).to.equal(config.oracleDai);
-      expect(await payment.oracles(config.usdt)).to.equal(config.oracleUsdt);
-      expect(await payment.oracles(config.usdc)).to.equal(config.oracleUsdc);
-      expect(await payment.oracles(ethers.constants.AddressZero)).to.equal(
-        config.oracleEth
-      );
-      expect(await payment.basePrice()).to.equal(200);
-      expect(await payment.nft()).to.equal(nft.address);
-    });
+  it.only("sets all the right values", async () => {
+    expect(await payment.dai()).to.equal(config.dai);
+    expect(await payment.usdt()).to.equal(config.usdt);
+    expect(await payment.usdc()).to.equal(config.usdc);
+    expect(await payment.oracles(config.dai)).to.equal(config.oracleDai);
+    expect(await payment.oracles(config.usdt)).to.equal(config.oracleUsdt);
+    expect(await payment.oracles(config.usdc)).to.equal(config.oracleUsdc);
+    expect(await payment.oracles(ethers.constants.AddressZero)).to.equal(
+      config.oracleEth
+    );
+    expect(await payment.basePrice()).to.equal(200);
+    expect(await payment.nft()).to.equal(nft.address);
   });
 
-  // it("USDC payment", async () => {
-  //   ForkHelpers.mintToken(usdc, alice, parseUnits("1000", 6));
-  //   await usdc.connect(alice).approve(payment.address, parseUnits("1000", 6));
+  it.only("USDC payment without discount", async () => {
+    await ForkHelpers.mintToken(usdc, alice, parseUnits("1000.0", 6));
+    await usdc.connect(alice).approve(payment.address, parseUnits("1000.0", 6));
 
-  //   await payment.connect(alice).payWithERC20(usdc.address);
+    await payment.connect(alice).payWithERC20(usdc.address, 0);
 
-  //   const balance = await usdc.balanceOf(payment.address);
+    const balance = await usdc.balanceOf(alice.address);
+    const balanceContract = await usdc.balanceOf(payment.address);
 
-  //   // TODO
-  //   expect(balance).to.be.closeTo(parseUnits("100", 6), 10000);
-  // });
+    expect(balance).to.be.closeTo("800000000", 10 ** 6);
+    expect(balanceContract).to.be.closeTo("200000000", 10 ** 6);
+  });
 
-  // it("token eth", async () => {
-  //   const price = ethers.BigNumber.from("0"); // TODO await payment.getPriceEth();
-  //   const balanceBefore = await alice.getBalance();
-  //   await payment.connect(alice).payWithEth({ value: price.mul(110).div(100) });
-  //   // TODO
-  //   const balanceAfter = await alice.getBalance();
+  /*it.only("USDT payment without discount", async () => {
+    await ForkHelpers.mintToken(usdt, bob, parseUnits("1000.0", 6));
+    let balanceBefore = await usdt.balanceOf(bob.address);
+    console.log(balanceBefore);
+    await usdt.connect(bob).approve(payment.address, parseUnits("1000.0", 6));
 
-  //   expect(balanceAfter).to.be.closeTo(balanceBefore.sub(price), 0.0011);
-  // });
+    await payment.connect(bob).payWithERC20(usdt.address,0);
 
-  // it("emits an event", async () => {
-  //   const price = ethers.BigNumber.from("0"); // TODO await payment.getPriceEth();
-  //   const tx = payment
-  //     .connect(alice)
-  //     .payWithEth({ value: price.mul(110).div(100) });
+    const balance = await usdt.balanceOf(bob.address);
+    const balanceContract = await usdt.balanceOf(payment.address);
 
-  //   // await expect(tx).to.emit('PaidWithEth').withArgs(alice.address, ....)
-  // });
+   expect(balance).to.be.closeTo("800000000", 10**6);
+   console.log(balance);
+   expect(balanceContract).to.be.closeTo("200000000",10**6);
+   console.log(balanceContract);
+ });
+*/
+
+  it.only("DAI payment without discount", async () => {
+    await ForkHelpers.mintToken(dai, alice, parseUnits("1000.0"));
+    await dai.connect(alice).approve(payment.address, parseUnits("1000.0"));
+
+    await payment.connect(alice).payWithERC20(dai.address, 0);
+
+    const balance = await dai.balanceOf(alice.address);
+
+    const balanceContract = await dai.balanceOf(payment.address);
+
+    expect(balance).to.be.closeTo(
+      parseUnits("800"),
+      parseUnits("1") as unknown as number
+    );
+    expect(balanceContract).to.be.closeTo(
+      parseUnits("200"),
+      parseUnits("1") as unknown as number
+    );
+  });
+
+  it.only("Withdraw owner", async () => {
+    const action = payment.connect(alice).withdraw();
+
+    await expect(action).to.be.reverted;
+  });
+
+  /*it.only("ETH payment without discount", async () => {
+    const price = await payment.getPriceEth(); 
+    await payment.connect(alice).payWithEth(0,{ value: price.mul(110).div(100) });
+    // TODO
+    const balanceContract = await balance(payment.address);
+    console.log(balanceContract);
+   expect(balanceContract).to.be.closeTo(price, parseUnits("0.001") as unknown as number);
+  });
+
+  it.only("emits an event", async () => {
+    const price = await payment.getPriceEth(); 
+    const tx = payment.connect(alice).payWithEth(0,{ value: price.mul(110).div(100) });
+
+    await expect(tx).to.emit(payment.address,'Payment').withArgs(alice.address, price, 0, 0);
+  });*/
 });

@@ -71,86 +71,55 @@ contract OffscriptPayment is Ownable {
         basePrice = _basePrice;
     }
 
-    function checkForNft(address owner) public returns (uint256, uint256) {
-        return (0, 0);
-        // uint256 num = _nft.balanceOf(owner);
-        // uint256 discount = 0;
-        // uint256 tokenId = 0;
-        // for (uint256 i = 0; i < num; i++) {
-        //     uint256 aux = _nft.tokenOfOwnerByIndex(owner, i);
-        //     uint256 aux2 = _nft.traits(aux);
-        //     if(aux2 > discount){
-        //         discount = aux2;
-        //         tokenId = aux;
-        //     }
-        // }
-
-        // return (discount,tokenId);
+    function checkForNft(uint256 tokenId) internal view returns (uint256) {
+        (uint8 discount, ) = nft.getMetadata(tokenId);
+        return discount;
     }
 
-    function payWithEth() external payable {
-        AggregatorV3Interface oracle = AggregatorV3Interface(
-            oracles[address(0x0)]
-        );
-
+    function payWithEth(uint256 tokenId) external payable {
         uint256 decimals = 18;
-        uint256 oracleDecimals = oracle.decimals();
 
-        (uint256 discount, uint256 nftId) = checkForNft(msg.sender);
+        if (tokenId > 0) {
+            require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
+        }
+        uint256 discount = checkForNft(tokenId);
 
-        // call oracle & compute price
-        (
-            uint256 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint256 answeredInRound
-        ) = oracle.latestRoundData();
-
-        //Falta aplicar o desconto
         discount = discount * 10**(decimals - 2);
 
-        // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = ((basePrice * 10**oracleDecimals) / uint256(price)) *
-            10**(decimals - oracleDecimals);
+        uint256 amount = getPriceEth();
 
         uint256 discountInValue = amount * discount;
 
-        emit Payment(msg.sender, amount - discountInValue, nftId, address(0));
+        emit Payment(msg.sender, amount - discountInValue, tokenId, address(0));
     }
 
-    function payWithERC20(address _token) external {
+    function payWithERC20(address _token, uint256 tokenId) external {
         require(_token != address(0x0));
         AggregatorV3Interface oracle = AggregatorV3Interface(oracles[_token]);
 
         require(address(oracle) != address(0x0), "token not supported");
 
         uint256 decimals = IERC20Metadata(_token).decimals();
-        uint256 oracleDecimals = oracle.decimals();
 
-        (uint256 discount, uint256 nftId) = checkForNft(msg.sender);
-
-        // call oracle & compute price
-        (
-            uint256 roundID,
-            int256 price,
-            uint256 startedAt,
-            uint256 timeStamp,
-            uint256 answeredInRound
-        ) = oracle.latestRoundData();
+        if (tokenId > 0) {
+            require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
+        }
+        uint256 discount = checkForNft(tokenId);
 
         discount = discount * 10**(decimals - 2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = ((basePrice * 10**oracleDecimals) *
-            10**(decimals - oracleDecimals)) / uint256(price);
+        uint256 amount = getPriceERC20(_token);
 
-        // TODO stack too deep error
-        // uint256 discountInValue = amount * discount;
+        uint256 discountInValue = amount * discount;
 
-        // IERC20(_token).safeTransferFrom(msg.sender, address(this), amount-discountInValue);
+        IERC20(_token).transferFrom(
+            msg.sender,
+            address(this),
+            amount - discountInValue
+        );
 
-        // emit Payment(msg.sender, amount-discountInValue, nftId, _token);
+        emit Payment(msg.sender, amount - discountInValue, tokenId, _token);
     }
 
     //Caso erro - abortar revert ou require
@@ -160,5 +129,29 @@ contract OffscriptPayment is Ownable {
         usdt.safeTransfer(msg.sender, usdt.balanceOf(address(this)));
         usdc.safeTransfer(msg.sender, usdc.balanceOf(address(this)));
         payable(msg.sender).transfer(address(this).balance);
+    }
+
+    function getPriceEth() public view returns (uint256) {
+        AggregatorV3Interface oracle = AggregatorV3Interface(
+            oracles[address(0x0)]
+        );
+
+        (, int256 price, , , ) = oracle.latestRoundData();
+
+        return
+            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+                10**18) / 10**oracle.decimals();
+    }
+
+    function getPriceERC20(address token) public view returns (uint256) {
+        AggregatorV3Interface oracle = AggregatorV3Interface(oracles[token]);
+
+        uint256 decimals = IERC20Metadata(token).decimals();
+
+        (, int256 price, , , ) = oracle.latestRoundData();
+
+        return
+            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+                10**decimals) / 10**oracle.decimals();
     }
 }
