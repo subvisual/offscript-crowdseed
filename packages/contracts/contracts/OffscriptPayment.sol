@@ -78,7 +78,7 @@ contract OffscriptPayment is Ownable {
     function payWithEth(uint256 tokenId) external payable {
         uint256 decimals = 18;
 
-        if(tokenId > 0){
+        if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
@@ -100,7 +100,7 @@ contract OffscriptPayment is Ownable {
 
         uint256 decimals = IERC20Metadata(_token).decimals();
 
-        if(tokenId > 0){
+        if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
@@ -109,13 +109,16 @@ contract OffscriptPayment is Ownable {
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
         uint256 amount = getPriceERC20(_token);
-        
 
         uint256 discountInValue = amount * discount;
 
-        IERC20(_token).transferFrom(msg.sender, address(this), amount-discountInValue);
+        IERC20(_token).transferFrom(
+            msg.sender,
+            address(this),
+            amount - discountInValue
+        );
 
-        emit Payment(msg.sender, amount-discountInValue, tokenId, _token);
+        emit Payment(msg.sender, amount - discountInValue, tokenId, _token);
     }
 
     //Caso erro - abortar revert ou require
@@ -127,39 +130,27 @@ contract OffscriptPayment is Ownable {
         payable(msg.sender).transfer(address(this).balance);
     }
 
-
-    function getPriceEth() public view returns (uint256){
+    function getPriceEth() public view returns (uint256) {
         AggregatorV3Interface oracle = AggregatorV3Interface(
             oracles[address(0x0)]
         );
-        
-        (
-            ,
-            int256 price,
-            ,
-            ,
-            
-        ) = oracle.latestRoundData();
-    
-        return (((basePrice * 10**(oracle.decimals()*2)) / uint256(price))*10**18)/10**oracle.decimals();
+
+        (, int256 price, , , ) = oracle.latestRoundData();
+
+        return
+            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+                10**18) / 10**oracle.decimals();
     }
 
-    function getPriceERC20(address token) public view returns (uint256){
-        AggregatorV3Interface oracle = AggregatorV3Interface(
-            oracles[token]
-        );
+    function getPriceERC20(address token) public view returns (uint256) {
+        AggregatorV3Interface oracle = AggregatorV3Interface(oracles[token]);
 
-        uint decimals = IERC20Metadata(token).decimals();
+        uint256 decimals = IERC20Metadata(token).decimals();
 
-        (
-            ,
-            int256 price,
-            ,
-            ,
-            
-        ) = oracle.latestRoundData();
+        (, int256 price, , , ) = oracle.latestRoundData();
 
-        return (((basePrice * 10**(oracle.decimals()*2)) / uint256(price))*10**decimals)/10**oracle.decimals();
+        return
+            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+                10**decimals) / 10**oracle.decimals();
     }
-
 }
