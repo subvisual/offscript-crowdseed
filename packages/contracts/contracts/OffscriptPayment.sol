@@ -86,14 +86,17 @@ contract OffscriptPayment is Ownable {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
-
-        discount = discount * 10**(decimals - 2);
-
         uint256 amount = getPriceEth(_extended);
+        uint256 discountValue = (amount * discount) / 100;
+        uint256 finalValue = amount - discountValue;
 
-        uint256 discountInValue = amount * discount;
+        require(msg.value >= finalValue, "not enough sent");
 
-        emit Payment(msg.sender, amount - discountInValue, tokenId, address(0));
+        if (msg.value > finalValue) {
+            payable(msg.sender).transfer(msg.value - finalValue);
+        }
+
+        emit Payment(msg.sender, finalValue, tokenId, address(0));
     }
 
     function payWithERC20(
@@ -106,27 +109,17 @@ contract OffscriptPayment is Ownable {
 
         require(address(oracle) != address(0x0), "token not supported");
 
-        uint256 decimals = IERC20Metadata(_token).decimals();
-
         if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
-
-        discount = discount * 10**(decimals - 2);
-
-        // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
         uint256 amount = getPriceERC20(_token, _extended);
+        uint256 discountValue = (amount * discount) / 100;
+        uint256 finalValue = amount - discountValue;
 
-        uint256 discountInValue = amount * discount;
+        IERC20(_token).transferFrom(msg.sender, address(this), finalValue);
 
-        IERC20(_token).transferFrom(
-            msg.sender,
-            address(this),
-            amount - discountInValue
-        );
-
-        emit Payment(msg.sender, amount - discountInValue, tokenId, _token);
+        emit Payment(msg.sender, finalValue, tokenId, _token);
     }
 
     //Caso erro - abortar revert ou require

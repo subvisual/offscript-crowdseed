@@ -113,9 +113,7 @@ describe("OffscriptPayment", () => {
         }
 
         let expectedPrice =
-          ticketType == "regular"
-            ? await payment.basePrice()
-            : await payment.extendedPrice();
+          ticketType == "regular" ? parseUnits("0.28") : parseUnits("0.33");
 
         if (discount) {
           expectedPrice = expectedPrice.sub(
@@ -123,20 +121,21 @@ describe("OffscriptPayment", () => {
           );
         }
 
-        const extended = ticketType == "regular" ? true : false;
+        const extended = ticketType == "regular" ? false : true;
 
-        const tx = payment.connect(alice).payWithEth(nftId, extended);
-        await tx;
+        await payment
+          .connect(alice)
+          .payWithEth(nftId, extended, { value: parseUnits("1") });
 
         const balance = await ethers.provider.getBalance(payment.address);
 
         expect(balance).to.be.closeTo(
-          parseUnits("0.3"),
+          expectedPrice,
           parseUnits("0.01") as unknown as number
         );
       });
 
-      ["USDC", "DAI", "USDT"].forEach((currency) => {
+      ["DAI", "USDT", "USDC"].forEach((currency) => {
         it.only(`${currency} payment, ${ticketType} ticket, ${
           discount ? `with ${discount}%` : "without"
         } discount`, async () => {
@@ -164,9 +163,8 @@ describe("OffscriptPayment", () => {
             );
           }
 
-          const extended = ticketType == "regular" ? true : false;
+          const extended = ticketType == "regular" ? false : true;
           const [token, decimals] = contracts[currency];
-          // const decimals = (token as IERC20Metadata).decimals();
 
           // make payment
 
@@ -178,7 +176,7 @@ describe("OffscriptPayment", () => {
 
           expect(balance).to.be.closeTo(
             parseUnits(expectedPrice.toString(), decimals),
-            parseUnits("1", decimals) as unknown as number
+            parseUnits("2", decimals) as unknown as number
           );
         });
       });
