@@ -71,40 +71,21 @@ contract OffscriptPayment is Ownable {
     }
 
     function checkForNft(uint256 tokenId) internal view returns (uint256) {
-        return nft.traits(tokenId);
+        (uint8 discount, ) = nft.getMetadata(tokenId);
+        return discount;
     }
 
     function payWithEth(uint256 tokenId) external payable {
-        AggregatorV3Interface oracle = AggregatorV3Interface(
-            oracles[address(0x0)]
-        );
-
         uint256 decimals = 18;
-        uint256 oracleDecimals = oracle.decimals();
 
         if(tokenId > 0){
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
 
-        // call oracle & compute price
-        (
-            ,
-            int256 price,
-            ,
-            ,
-            
-        ) = oracle.latestRoundData();
-
         discount = discount * 10**(decimals - 2);
 
-        uint256 amount = (basePrice * 10**(oracleDecimals*2)) / uint256(price);
-        console.log("Price: %d",uint256(price));
-        console.log("Amount: %d", amount);
-        amount = amount * 10**decimals;
-        console.log("Amount: %d", amount);
-        amount = amount / 10**oracleDecimals;
-        console.log("Amount: %d", amount);
+        uint256 amount = getPriceEth();
 
         uint256 discountInValue = amount * discount;
 
@@ -118,33 +99,16 @@ contract OffscriptPayment is Ownable {
         require(address(oracle) != address(0x0), "token not supported");
 
         uint256 decimals = IERC20Metadata(_token).decimals();
-        uint256 oracleDecimals = oracle.decimals();
 
         if(tokenId > 0){
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
 
-
-        // call oracle & compute price
-        (
-            ,
-            int256 price,
-            ,
-            ,
-            
-        ) = oracle.latestRoundData();
-
         discount = discount * 10**(decimals - 2);
 
         // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = (basePrice * 10**(oracleDecimals*2)) / uint256(price);
-        console.log("Price: %d",uint256(price));
-        console.log("Amount: %d", amount);
-        amount = amount * 10**decimals;
-        console.log("Amount: %d", amount);
-        amount = amount / 10**oracleDecimals;
-        console.log("Amount: %d", amount);
+        uint256 amount = getPriceERC20(_token);
         
 
         uint256 discountInValue = amount * discount;
@@ -176,6 +140,23 @@ contract OffscriptPayment is Ownable {
             ,
             
         ) = oracle.latestRoundData();
+
+        return (((basePrice * 10**(oracle.decimals()*2)) / uint256(price))*10**18)/10**oracle.decimals();
+    }
+
+    function getPriceERC20(address token) public view returns (uint256){
+        AggregatorV3Interface oracle = AggregatorV3Interface(
+            oracles[token]
+        );
+
+        (
+            ,
+            int256 price,
+            ,
+            ,
+            
+        ) = oracle.latestRoundData();
+
 
         return (((basePrice * 10**(oracle.decimals()*2)) / uint256(price))*10**18)/10**oracle.decimals();
     }

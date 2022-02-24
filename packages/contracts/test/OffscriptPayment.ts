@@ -90,8 +90,6 @@ describe("OffscriptPayment", () => {
 
   it.only("USDC payment without discount", async () => {
      await ForkHelpers.mintToken(usdc, alice, parseUnits("1000.0", 6));
-     let balanceBefore = await usdc.balanceOf(alice.address);
-     console.log(balanceBefore);
      await usdc.connect(alice).approve(payment.address, parseUnits("1000.0", 6));
 
      await payment.connect(alice).payWithERC20(usdc.address,0);
@@ -100,9 +98,7 @@ describe("OffscriptPayment", () => {
      const balanceContract = await usdc.balanceOf(payment.address);
 
     expect(balance).to.be.closeTo("800000000", 10**6);
-    console.log(balance);
     expect(balanceContract).to.be.closeTo("200000000",10**6);
-    console.log(balanceContract);
   });
 
   /*it.only("USDT payment without discount", async () => {
@@ -122,10 +118,9 @@ describe("OffscriptPayment", () => {
    console.log(balanceContract);
  });
 */
+
  it.only("DAI payment without discount", async () => {
   await ForkHelpers.mintToken(dai, alice, parseUnits("1000.0"));
-  let balanceBefore = await dai.balanceOf(alice.address);
-  console.log(balanceBefore);
   await dai.connect(alice).approve(payment.address, parseUnits("1000.0"));
 
   await payment.connect(alice).payWithERC20(dai.address,0);
@@ -135,9 +130,7 @@ describe("OffscriptPayment", () => {
   const balanceContract = await dai.balanceOf(payment.address);
 
  expect(balance).to.be.closeTo(parseUnits("800"), parseUnits("1") as unknown as number);
- console.log(balance);
  expect(balanceContract).to.be.closeTo(parseUnits("200"), parseUnits("1") as unknown as number);
- console.log(balanceContract);
 });
 
 it.only("Withdraw owner", async () => {
