@@ -140,13 +140,7 @@ contract OffscriptPayment is Ownable {
             ,
             
         ) = oracle.latestRoundData();
-        console.log(uint(price));
-        uint amount = ((basePrice * 10**(oracle.decimals()*2)) / uint256(price));
-        console.log("Amount: %d", amount);
-        amount = amount * 10**18;
-        console.log("Amount: %d", amount);
-        amount = amount /10**oracle.decimals();
-        console.log("Amount: %d", amount);
+    
         return (((basePrice * 10**(oracle.decimals()*2)) / uint256(price))*10**18)/10**oracle.decimals();
     }
 
