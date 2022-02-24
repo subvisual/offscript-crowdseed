@@ -140,19 +140,18 @@ it.only("Withdraw owner", async () => {
 });
 
   /*it.only("ETH payment without discount", async () => {
-    const price = parseUnits("200"); 
-    const balanceBefore = await alice.getBalance();
+    const price = await payment.getPriceEth(); 
     await payment.connect(alice).payWithEth(0,{ value: price.mul(110).div(100) });
     // TODO
-    const balanceAfter = await alice.getBalance();
-
-   expect(balanceAfter).to.be.closeTo(balanceBefore.sub(price), parseUnits("0.0011") as unknown as number);
+    const balanceContract = await balance(payment.address);
+    console.log(balanceContract);
+   expect(balanceContract).to.be.closeTo(price, parseUnits("0.001") as unknown as number);
   });
 
   it.only("emits an event", async () => {
-    const price = parseUnits("200");  // TODO await payment.getPriceEth();
+    const price = await payment.getPriceEth(); 
     const tx = payment.connect(alice).payWithEth(0,{ value: price.mul(110).div(100) });
 
-    await expect(tx).to.emit(payment.address,'Payment').withArgs(alice.address, 200, 0, 0);
+    await expect(tx).to.emit(payment.address,'Payment').withArgs(alice.address, price, 0, 0);
   });*/
 });

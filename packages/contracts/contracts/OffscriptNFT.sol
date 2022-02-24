@@ -7,14 +7,13 @@ import {ERC721} from "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import {IERC721} from "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import {Base64} from "@openzeppelin/contracts/utils/Base64.sol";
 import {Strings} from "@openzeppelin/contracts/utils/Strings.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 
 import {IOffscriptNFT} from "./IOffscriptNFT.sol";
-import {IProxyRegistry} from "./IProxyRegistry.sol";
-import {Trust} from "./Trust.sol";
 
 import "hardhat/console.sol";
 
-contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
+contract OffscriptNFT is ERC721, Ownable, IOffscriptNFT {
     //
     // Events
     //
@@ -23,11 +22,63 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
     event BaseURIUpdated(string newBaseURI);
 
     //
+    // Constants
+    //
+
+    string public constant description =
+        // solhint-disable-next-line max-line-length
+        "Offscript Crowdseed NFT. Owned by early supporters of Offscript - An offsite for creatives in Web3. Owners of this NFT, get a discount during ticket sale";
+    string public constant externalUrl = "https://offscript.web3creatives.com/";
+
+    string[] publicNames = [
+        "Bearberry",
+        "Bean",
+        "California bay",
+        "Bay laurel",
+        "Bay",
+        "Baobab",
+        "Banana",
+        "Bamboo",
+        "Carolina azolla",
+        "Azolla",
+        "Water ash",
+        "White ash",
+        "Swamp ash",
+        "River ash",
+        "Red ash",
+        "Maple ash",
+        "Green ash",
+        "Cane ash",
+        "Blue ash",
+        "Black ash",
+        "Ash",
+        "Indian arrowwood",
+        "Arrowwood",
+        "Arizona sycamore",
+        "Arfaj",
+        "Apricot",
+        "Apple of Sodom",
+        "Apple",
+        "Amy root",
+        "Tall ambrosia",
+        "Almond",
+        "White alder",
+        "Striped alder",
+        "Alnus incana",
+        "Speckled alder",
+        "Gray alder",
+        "False alder",
+        "Common alder",
+        "Black alder",
+        "Alder"
+    ];
+
+    //
     // State
     //
 
-    // token => discount
-    mapping(uint256 => uint256) public traits;
+    // token => metadata
+    mapping(uint256 => Metadata) metadata;
 
     /// Base URI for all NFTs
     string public baseURI;
@@ -42,7 +93,10 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
     uint8[] public discounts;
     uint8[] public availablePerTrait;
 
-    IProxyRegistry proxyRegistry;
+    /// Admin address
+    address public admin;
+
+    uint256 public price;
 
     //
     // Constructor
@@ -57,8 +111,13 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         uint8 _remainingPrivateSupply,
         uint8[] memory _discounts,
         uint8[] memory _availablePerTrait,
-        IProxyRegistry _proxyRegistry
-    ) ERC721(_name, _symbol) Trust(msg.sender) {
+        uint256 _price
+    ) ERC721(_name, _symbol) Ownable() {
+        require(
+            publicNames.length == _remainingPublicSupply,
+            "different amount of names"
+        );
+
         baseURI = _baseURI;
 
         totalPublicSupply = _remainingPublicSupply;
@@ -70,9 +129,20 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         discounts = _discounts;
         availablePerTrait = _availablePerTrait;
 
-        proxyRegistry = _proxyRegistry;
+        price = _price;
 
         emit BaseURIUpdated(_baseURI);
+    }
+
+    function getMetadata(uint256 tokenId)
+        external
+        view
+        override(IOffscriptNFT)
+        returns (uint8 discount, string memory name)
+    {
+        Metadata memory meta = metadata[tokenId];
+
+        return (meta.discount, meta.name);
     }
 
     //
@@ -85,15 +155,23 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         override(ERC721)
         returns (string memory)
     {
-        uint256 discount = traits[tokenId];
+        Metadata memory meta = metadata[tokenId];
 
         bytes memory metadata = abi.encodePacked(
-            '{"description": "TODO",',
-            '"name": "TODO",',
-            '"external_url": "https://www.web3creatives.com",',
+            '{"description": "',
+            description,
+            '",',
+            '"name": "',
+            meta.name,
+            '",',
+            '"external_url": "',
+            externalUrl,
+            '",',
             '"attributes": {"discount": ',
-            Strings.toString(discount),
-            '}, "image": "',
+            Strings.toString(meta.discount),
+            ',"name": "',
+            meta.name,
+            '"}, "image": "',
             baseURI,
             Strings.toString(tokenId),
             '.png"}'
@@ -119,14 +197,15 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
      *
      * @param _newBaseURI new base URI for the token
      */
-    function setBaseURI(string memory _newBaseURI) public requiresTrust {
+    function setBaseURI(string memory _newBaseURI) public onlyOwner {
         baseURI = _newBaseURI;
 
         emit BaseURIUpdated(_newBaseURI);
     }
 
     // A function our user will hit to get their NFT.
-    function mintPublic(address _address) public requiresTrust {
+    function mintPublic() public payable {
+        require(msg.value >= price, "Not enough");
         require(remainingPublicSupply > 0, "Depleted");
 
         // IDs from from #1 to #totalPublicSupply
@@ -148,15 +227,18 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         );
 
         uint8 discount = calculateDiscount(random);
+        string memory name = publicNames[publicNames.length - 1];
 
-        _mintWithDiscount(_address, newItemId, discount);
+        _mintWithMetadata(msg.sender, newItemId, discount, name);
+        publicNames.pop();
         remainingPublicSupply--;
     }
 
     function mintPrivate(
         address[] calldata _addresses,
-        uint8[] calldata _discounts
-    ) external requiresTrust {
+        uint8[] calldata _discounts,
+        string[] calldata _names
+    ) external onlyOwner {
         uint8 length = uint8(_addresses.length);
 
         require(length == _discounts.length, "Arrays size must be the same");
@@ -170,7 +252,12 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         remainingPrivateSupply -= length;
 
         for (uint8 i = 0; i < length; i++) {
-            _mintWithDiscount(_addresses[i], nextId + i, _discounts[i]);
+            _mintWithMetadata(
+                _addresses[i],
+                nextId + i,
+                _discounts[i],
+                _names[i]
+            );
         }
     }
 
@@ -178,12 +265,13 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
     // Internal API
     //
 
-    function _mintWithDiscount(
+    function _mintWithMetadata(
         address _owner,
         uint256 _id,
-        uint8 _discount
+        uint8 _discount,
+        string memory _name
     ) internal {
-        traits[_id] = _discount;
+        metadata[_id] = Metadata(_discount, _name);
         _safeMint(_owner, _id);
     }
 
@@ -230,20 +318,7 @@ contract OffscriptNFT is ERC721, Trust, IOffscriptNFT {
         return super.supportsInterface(interfaceId);
     }
 
-    /**
-     * Override isApprovedForAll to whitelist user's OpenSea proxy accounts to enable gas-less listings.
-     */
-    function isApprovedForAll(address owner, address operator)
-        public
-        view
-        override(IERC721, ERC721)
-        returns (bool)
-    {
-        // Whitelist OpenSea proxy contract for easy trading.
-        if (address(proxyRegistry.proxies(owner)) == operator) {
-            return true;
-        }
-
-        return super.isApprovedForAll(owner, operator);
+    function sweep() external onlyOwner {
+        payable(msg.sender).transfer(address(this).balance);
     }
 }
