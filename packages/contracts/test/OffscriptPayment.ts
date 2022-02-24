@@ -74,31 +74,31 @@ describe("OffscriptPayment", () => {
     dai = IERC20__factory.connect(config.dai, owner);
   });
 
-    it.only("sets all the right values", async () => {
-      expect(await payment.dai()).to.equal(config.dai);
-      expect(await payment.usdt()).to.equal(config.usdt);
-      expect(await payment.usdc()).to.equal(config.usdc);
-      expect(await payment.oracles(config.dai)).to.equal(config.oracleDai);
-      expect(await payment.oracles(config.usdt)).to.equal(config.oracleUsdt);
-      expect(await payment.oracles(config.usdc)).to.equal(config.oracleUsdc);
-      expect(await payment.oracles(ethers.constants.AddressZero)).to.equal(
-        config.oracleEth
-      );
-      expect(await payment.basePrice()).to.equal(200);
-      expect(await payment.nft()).to.equal(nft.address);
-    });
+  it.only("sets all the right values", async () => {
+    expect(await payment.dai()).to.equal(config.dai);
+    expect(await payment.usdt()).to.equal(config.usdt);
+    expect(await payment.usdc()).to.equal(config.usdc);
+    expect(await payment.oracles(config.dai)).to.equal(config.oracleDai);
+    expect(await payment.oracles(config.usdt)).to.equal(config.oracleUsdt);
+    expect(await payment.oracles(config.usdc)).to.equal(config.oracleUsdc);
+    expect(await payment.oracles(ethers.constants.AddressZero)).to.equal(
+      config.oracleEth
+    );
+    expect(await payment.basePrice()).to.equal(200);
+    expect(await payment.nft()).to.equal(nft.address);
+  });
 
   it.only("USDC payment without discount", async () => {
-     await ForkHelpers.mintToken(usdc, alice, parseUnits("1000.0", 6));
-     await usdc.connect(alice).approve(payment.address, parseUnits("1000.0", 6));
+    await ForkHelpers.mintToken(usdc, alice, parseUnits("1000.0", 6));
+    await usdc.connect(alice).approve(payment.address, parseUnits("1000.0", 6));
 
-     await payment.connect(alice).payWithERC20(usdc.address,0);
+    await payment.connect(alice).payWithERC20(usdc.address, 0);
 
-     const balance = await usdc.balanceOf(alice.address);
-     const balanceContract = await usdc.balanceOf(payment.address);
+    const balance = await usdc.balanceOf(alice.address);
+    const balanceContract = await usdc.balanceOf(payment.address);
 
-    expect(balance).to.be.closeTo("800000000", 10**6);
-    expect(balanceContract).to.be.closeTo("200000000",10**6);
+    expect(balance).to.be.closeTo("800000000", 10 ** 6);
+    expect(balanceContract).to.be.closeTo("200000000", 10 ** 6);
   });
 
   /*it.only("USDT payment without discount", async () => {
@@ -119,25 +119,31 @@ describe("OffscriptPayment", () => {
  });
 */
 
- it.only("DAI payment without discount", async () => {
-  await ForkHelpers.mintToken(dai, alice, parseUnits("1000.0"));
-  await dai.connect(alice).approve(payment.address, parseUnits("1000.0"));
+  it.only("DAI payment without discount", async () => {
+    await ForkHelpers.mintToken(dai, alice, parseUnits("1000.0"));
+    await dai.connect(alice).approve(payment.address, parseUnits("1000.0"));
 
-  await payment.connect(alice).payWithERC20(dai.address,0);
+    await payment.connect(alice).payWithERC20(dai.address, 0);
 
-  const balance = await dai.balanceOf(alice.address);
+    const balance = await dai.balanceOf(alice.address);
 
-  const balanceContract = await dai.balanceOf(payment.address);
+    const balanceContract = await dai.balanceOf(payment.address);
 
- expect(balance).to.be.closeTo(parseUnits("800"), parseUnits("1") as unknown as number);
- expect(balanceContract).to.be.closeTo(parseUnits("200"), parseUnits("1") as unknown as number);
-});
+    expect(balance).to.be.closeTo(
+      parseUnits("800"),
+      parseUnits("1") as unknown as number
+    );
+    expect(balanceContract).to.be.closeTo(
+      parseUnits("200"),
+      parseUnits("1") as unknown as number
+    );
+  });
 
-it.only("Withdraw owner", async () => {
-  const action = payment.connect(alice).withdraw();
+  it.only("Withdraw owner", async () => {
+    const action = payment.connect(alice).withdraw();
 
-  await expect(action).to.be.reverted;
-});
+    await expect(action).to.be.reverted;
+  });
 
   /*it.only("ETH payment without discount", async () => {
     const price = await payment.getPriceEth(); 

@@ -98,7 +98,7 @@ async function bruteForceTokenBalanceSlotIndex(
   const probeA = encodeSlot(["uint"], [1]);
   const probeB = encodeSlot(["uint"], [2]);
 
-  const token = await ethers.getContractAt("ERC20", tokenAddress);
+  const token = await ethers.getContractAt("IERC20", tokenAddress);
 
   for (let i = 0; i < 100; i++) {
     let probedSlot = keccak256(encodeSlot(["address", "uint"], [account, i])); // remove padding for JSON RPC
