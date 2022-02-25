@@ -41,6 +41,11 @@ contract OffscriptPayment is Ownable {
     // NFT contract
     IOffscriptNFT public nft;
 
+    //Ticket Supply
+    uint256 public supply;
+
+    event SupplyUpdated(uint256 newSupply);
+
     // base ticket price, in USD
     uint256 public basePrice;
     uint256 public extendedPrice;
@@ -57,7 +62,8 @@ contract OffscriptPayment is Ownable {
         AggregatorV3Interface _oracleUsdc,
         IOffscriptNFT _nft,
         uint256 _basePrice,
-        uint256 _extendedPrice
+        uint256 _extendedPrice,
+        uint256 _supply
     ) Ownable() {
         require(address(_dai) != address(0));
         require(address(_usdt) != address(0));
@@ -79,6 +85,10 @@ contract OffscriptPayment is Ownable {
 
         basePrice = _basePrice;
         extendedPrice = _extendedPrice;
+
+        supply = _supply;
+
+        emit SupplyUpdated(_supply);
     }
 
     function checkForNft(uint256 tokenId) internal view returns (uint256) {
@@ -87,6 +97,7 @@ contract OffscriptPayment is Ownable {
     }
 
     function payWithEth(uint256 tokenId, bool _extended) external payable {
+        require(supply > 0, "no tickets available");
         if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
@@ -102,6 +113,7 @@ contract OffscriptPayment is Ownable {
         }
 
         emit Payment(msg.sender, finalValue, tokenId, address(0));
+        supply--;
     }
 
     function payWithERC20(
@@ -109,6 +121,7 @@ contract OffscriptPayment is Ownable {
         uint256 tokenId,
         bool _extended
     ) external {
+        require(supply > 0, "no tickets available");
         require(_token != address(0x0));
         AggregatorV3Interface oracle = oracles[_token];
 
@@ -125,6 +138,7 @@ contract OffscriptPayment is Ownable {
         IERC20(_token).safeTransferFrom(msg.sender, address(this), finalValue);
 
         emit Payment(msg.sender, finalValue, tokenId, _token);
+        supply--;
     }
 
     //Caso erro - abortar revert ou require
@@ -175,5 +189,11 @@ contract OffscriptPayment is Ownable {
         if (address(this).balance > 0) {
             payable(msg.sender).transfer(address(this).balance);
         }
+    }
+
+    function setSupply(uint256 newSupply) public onlyOwner{
+        supply = newSupply;
+
+        emit SupplyUpdated(newSupply);
     }
 }

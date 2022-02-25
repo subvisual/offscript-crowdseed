@@ -5,6 +5,7 @@ import "@nomiclabs/hardhat-ethers";
 import "@nomiclabs/hardhat-waffle";
 import "hardhat-deploy";
 import "hardhat-gas-reporter";
+require('dotenv').config({path:"F:/ProjectoPessoal/OffScript/offscript/packages/contracts"+'/./../../.env'});
 
 task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
   const accounts = await hre.ethers.getSigners();

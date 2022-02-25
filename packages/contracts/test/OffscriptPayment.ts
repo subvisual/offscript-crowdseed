@@ -69,7 +69,8 @@ describe("OffscriptPayment", () => {
       config.oracleUsdc,
       nft.address,
       800,
-      950
+      950,
+      50
     )) as OffscriptPayment;
 
     usdc = IERC20__factory.connect(config.usdc, owner);
@@ -98,6 +99,7 @@ describe("OffscriptPayment", () => {
     expect(await payment.basePrice()).to.equal(800);
     expect(await payment.extendedPrice()).to.equal(950);
     expect(await payment.nft()).to.equal(nft.address);
+    expect(await payment.supply()).to.equal(50);
   });
 
   ["regular", "extended"].forEach((ticketType) => {
@@ -215,6 +217,34 @@ describe("OffscriptPayment", () => {
       const action = payment.connect(alice).sweep();
 
       await expect(action).to.be.reverted;
+    });
+  });
+
+  describe("Supply", () =>{
+    it("Confirm change", async() =>{
+        await payment.connect(owner).setSupply(100);
+
+       expect(await payment.supply()).to.equal(100);
+    });
+
+
+    it("cannot be called by a non-owner", async () =>{
+      const action = payment.connect(alice).setSupply(0);
+
+      await expect(action).to.be.reverted;
+    });
+
+    it("Cannot buy without supply", async () =>{
+      const supply = await payment.supply() as unknown as number;
+      for (let i = 0; i < supply; ++i) {
+        await payment.connect(alice).payWithEth(0,false,{ value: parseUnits("1") });
+      }
+
+      expect(await payment.supply()).to.equal(0);
+      // the 51th must fail
+      await expect(payment.connect(alice).payWithEth(0,false,{ value: parseUnits("1") })).to.be.revertedWith(
+        "no tickets available"
+      );
     });
   });
 });
