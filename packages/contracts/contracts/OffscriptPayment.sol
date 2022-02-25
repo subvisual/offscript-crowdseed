@@ -43,6 +43,7 @@ contract OffscriptPayment is Ownable {
 
     // base ticket price, in USD
     uint256 public basePrice;
+    uint256 public extendedPrice;
 
     mapping(address => AggregatorV3Interface) public oracles;
 
@@ -50,25 +51,34 @@ contract OffscriptPayment is Ownable {
         IERC20 _dai,
         IERC20 _usdt,
         IERC20 _usdc,
-        AggregatorV3Interface oracleEth,
-        AggregatorV3Interface oracleDai,
-        AggregatorV3Interface oracleUsdt,
-        AggregatorV3Interface oracleUsdc,
+        AggregatorV3Interface _oracleEth,
+        AggregatorV3Interface _oracleDai,
+        AggregatorV3Interface _oracleUsdt,
+        AggregatorV3Interface _oracleUsdc,
         IOffscriptNFT _nft,
-        uint256 _basePrice
+        uint256 _basePrice,
+        uint256 _extendedPrice
     ) Ownable() {
-        // TODO address(0) checks
+        require(address(_dai) != address(0));
+        require(address(_usdt) != address(0));
+        require(address(_usdc) != address(0));
+        require(address(_oracleEth) != address(0));
+        require(address(_oracleUsdt) != address(0));
+        require(address(_oracleDai) != address(0));
+        require(address(_oracleUsdc) != address(0));
+
         nft = _nft;
         dai = _dai;
         usdt = _usdt;
         usdc = _usdc;
 
-        oracles[address(0x0)] = oracleEth;
-        oracles[address(_dai)] = oracleDai;
-        oracles[address(_usdt)] = oracleUsdt;
-        oracles[address(_usdc)] = oracleUsdc;
+        oracles[address(0x0)] = _oracleEth;
+        oracles[address(_dai)] = _oracleDai;
+        oracles[address(_usdt)] = _oracleUsdt;
+        oracles[address(_usdc)] = _oracleUsdc;
 
         basePrice = _basePrice;
+        extendedPrice = _extendedPrice;
     }
 
     function checkForNft(uint256 tokenId) internal view returns (uint256) {
@@ -76,82 +86,94 @@ contract OffscriptPayment is Ownable {
         return discount;
     }
 
-    function payWithEth(uint256 tokenId) external payable {
-        uint256 decimals = 18;
-
+    function payWithEth(uint256 tokenId, bool _extended) external payable {
         if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
+        uint256 amount = getPriceEth(_extended);
+        uint256 discountValue = (amount * discount) / 100;
+        uint256 finalValue = amount - discountValue;
 
-        discount = discount * 10**(decimals - 2);
+        require(msg.value >= finalValue, "not enough sent");
 
-        uint256 amount = getPriceEth();
+        if (msg.value > finalValue) {
+            payable(msg.sender).transfer(msg.value - finalValue);
+        }
 
-        uint256 discountInValue = amount * discount;
-
-        emit Payment(msg.sender, amount - discountInValue, tokenId, address(0));
+        emit Payment(msg.sender, finalValue, tokenId, address(0));
     }
 
-    function payWithERC20(address _token, uint256 tokenId) external {
+    function payWithERC20(
+        address _token,
+        uint256 tokenId,
+        bool _extended
+    ) external {
         require(_token != address(0x0));
-        AggregatorV3Interface oracle = AggregatorV3Interface(oracles[_token]);
+        AggregatorV3Interface oracle = oracles[_token];
 
         require(address(oracle) != address(0x0), "token not supported");
 
-        uint256 decimals = IERC20Metadata(_token).decimals();
-
         if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
         uint256 discount = checkForNft(tokenId);
+        uint256 amount = getPriceERC20(_token, _extended);
+        uint256 discountValue = (amount * discount) / 100;
+        uint256 finalValue = amount - discountValue;
 
-        discount = discount * 10**(decimals - 2);
+        IERC20(_token).safeTransferFrom(msg.sender, address(this), finalValue);
 
-        // ((target*1e8) / oracle_price) * (currency_decimal - oracle_decimals)
-        uint256 amount = getPriceERC20(_token);
-
-        uint256 discountInValue = amount * discount;
-
-        IERC20(_token).transferFrom(
-            msg.sender,
-            address(this),
-            amount - discountInValue
-        );
-
-        emit Payment(msg.sender, amount - discountInValue, tokenId, _token);
+        emit Payment(msg.sender, finalValue, tokenId, _token);
     }
 
     //Caso erro - abortar revert ou require
 
-    function withdraw() external onlyOwner {
-        dai.safeTransfer(msg.sender, dai.balanceOf(address(this)));
-        usdt.safeTransfer(msg.sender, usdt.balanceOf(address(this)));
-        usdc.safeTransfer(msg.sender, usdc.balanceOf(address(this)));
-        payable(msg.sender).transfer(address(this).balance);
-    }
-
-    function getPriceEth() public view returns (uint256) {
-        AggregatorV3Interface oracle = AggregatorV3Interface(
-            oracles[address(0x0)]
-        );
+    function getPriceEth(bool _extended) public view returns (uint256) {
+        AggregatorV3Interface oracle = oracles[address(0x0)];
 
         (, int256 price, , , ) = oracle.latestRoundData();
 
+        uint256 usdPrice = _extended ? extendedPrice : basePrice;
+
         return
-            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+            (((usdPrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
                 10**18) / 10**oracle.decimals();
     }
 
-    function getPriceERC20(address token) public view returns (uint256) {
-        AggregatorV3Interface oracle = AggregatorV3Interface(oracles[token]);
+    function getPriceERC20(address token, bool _extended)
+        public
+        view
+        returns (uint256)
+    {
+        AggregatorV3Interface oracle = oracles[token];
 
         uint256 decimals = IERC20Metadata(token).decimals();
 
         (, int256 price, , , ) = oracle.latestRoundData();
 
+        uint256 usdPrice = _extended ? extendedPrice : basePrice;
+
         return
-            (((basePrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
+            (((usdPrice * 10**(oracle.decimals() * 2)) / uint256(price)) *
                 10**decimals) / 10**oracle.decimals();
+    }
+
+    function sweep() external onlyOwner {
+        if (dai.balanceOf(address(this)) > 0) {
+            dai.safeTransfer(msg.sender, dai.balanceOf(address(this)));
+        }
+
+        if (usdt.balanceOf(address(this)) > 0) {
+            usdt.safeTransfer(msg.sender, usdt.balanceOf(address(this)));
+        }
+
+        if (usdc.balanceOf(address(this)) > 0) {
+            usdc.safeTransfer(msg.sender, usdc.balanceOf(address(this)));
+        }
+
+        if (address(this).balance > 0) {
+            payable(msg.sender).transfer(address(this).balance);
+        }
     }
 }
