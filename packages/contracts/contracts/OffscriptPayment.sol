@@ -41,14 +41,15 @@ contract OffscriptPayment is Ownable {
     // NFT contract
     IOffscriptNFT public nft;
 
-    //Ticket Supply
-    uint256 public supply;
-
     event SupplyUpdated(uint256 newSupply);
 
     // base ticket price, in USD
-    uint256 public basePrice;
-    uint256 public extendedPrice;
+    uint16 public basePrice;
+    uint16 public extendedPrice;
+
+    //Ticket Supply
+    uint16 public supply;
+    uint16 public sold;
 
     mapping(address => AggregatorV3Interface) public oracles;
 
@@ -61,9 +62,9 @@ contract OffscriptPayment is Ownable {
         AggregatorV3Interface _oracleUsdt,
         AggregatorV3Interface _oracleUsdc,
         IOffscriptNFT _nft,
-        uint256 _basePrice,
-        uint256 _extendedPrice,
-        uint256 _supply
+        uint16 _basePrice,
+        uint16 _extendedPrice,
+        uint16 _supply
     ) Ownable() {
         require(address(_dai) != address(0));
         require(address(_usdt) != address(0));
@@ -92,12 +93,12 @@ contract OffscriptPayment is Ownable {
     }
 
     function checkForNft(uint256 tokenId) internal view returns (uint256) {
-        (uint8 discount, ) = nft.getMetadata(tokenId);
+        (uint16 discount, ) = nft.getMetadata(tokenId);
         return discount;
     }
 
     function payWithEth(uint256 tokenId, bool _extended) external payable {
-        require(supply > 0, "no tickets available");
+        require(sold < supply, "no tickets available");
         if (tokenId > 0) {
             require(nft.ownerOf(tokenId) == msg.sender, "is not the owner");
         }
@@ -105,6 +106,7 @@ contract OffscriptPayment is Ownable {
         uint256 amount = getPriceEth(_extended);
         uint256 discountValue = (amount * discount) / 100;
         uint256 finalValue = amount - discountValue;
+        sold++;
 
         require(msg.value >= finalValue, "not enough sent");
 
@@ -113,7 +115,6 @@ contract OffscriptPayment is Ownable {
         }
 
         emit Payment(msg.sender, finalValue, tokenId, address(0));
-        supply--;
     }
 
     function payWithERC20(
@@ -121,7 +122,7 @@ contract OffscriptPayment is Ownable {
         uint256 tokenId,
         bool _extended
     ) external {
-        require(supply > 0, "no tickets available");
+        require(sold < supply, "no tickets available");
         require(_token != address(0x0));
         AggregatorV3Interface oracle = oracles[_token];
 
@@ -134,14 +135,12 @@ contract OffscriptPayment is Ownable {
         uint256 amount = getPriceERC20(_token, _extended);
         uint256 discountValue = (amount * discount) / 100;
         uint256 finalValue = amount - discountValue;
+        sold++;
 
         IERC20(_token).safeTransferFrom(msg.sender, address(this), finalValue);
 
         emit Payment(msg.sender, finalValue, tokenId, _token);
-        supply--;
     }
-
-    //Caso erro - abortar revert ou require
 
     function getPriceEth(bool _extended) public view returns (uint256) {
         AggregatorV3Interface oracle = oracles[address(0x0)];
@@ -191,9 +190,18 @@ contract OffscriptPayment is Ownable {
         }
     }
 
-    function setSupply(uint256 newSupply) public onlyOwner{
-        supply = newSupply;
+    function remainingSupply() public view returns (uint16) {
+        // may happen if we later change the supply to a lower value
+        if (sold >= supply) {
+            return 0;
+        }
 
-        emit SupplyUpdated(newSupply);
+        return supply - sold;
+    }
+
+    function setSupply(uint16 _newSupply) public onlyOwner {
+        supply = _newSupply;
+
+        emit SupplyUpdated(_newSupply);
     }
 }

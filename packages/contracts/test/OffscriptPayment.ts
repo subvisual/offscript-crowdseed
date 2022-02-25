@@ -159,9 +159,7 @@ describe("OffscriptPayment", () => {
               : await payment.extendedPrice();
 
           if (discount) {
-            expectedPrice = expectedPrice.sub(
-              expectedPrice.mul(discount).div(100)
-            );
+            expectedPrice = expectedPrice - (expectedPrice * discount) / 100;
           }
 
           const extended = ticketType == "regular" ? false : true;
@@ -220,31 +218,32 @@ describe("OffscriptPayment", () => {
     });
   });
 
-  describe("Supply", () =>{
-    it("Confirm change", async() =>{
-        await payment.connect(owner).setSupply(100);
+  describe("setSupply", () => {
+    it("Confirm change", async () => {
+      await payment.connect(owner).setSupply(100);
 
-       expect(await payment.supply()).to.equal(100);
+      expect(await payment.supply()).to.equal(100);
     });
 
-
-    it("cannot be called by a non-owner", async () =>{
+    it("cannot be called by a non-owner", async () => {
       const action = payment.connect(alice).setSupply(0);
 
       await expect(action).to.be.reverted;
     });
 
-    it("Cannot buy without supply", async () =>{
-      const supply = await payment.supply() as unknown as number;
+    it("Cannot buy without supply", async () => {
+      const supply = (await payment.supply()) as unknown as number;
       for (let i = 0; i < supply; ++i) {
-        await payment.connect(alice).payWithEth(0,false,{ value: parseUnits("1") });
+        await payment
+          .connect(alice)
+          .payWithEth(0, false, { value: parseUnits("1") });
       }
 
-      expect(await payment.supply()).to.equal(0);
+      expect(await payment.remainingSupply()).to.equal(0);
       // the 51th must fail
-      await expect(payment.connect(alice).payWithEth(0,false,{ value: parseUnits("1") })).to.be.revertedWith(
-        "no tickets available"
-      );
+      await expect(
+        payment.connect(alice).payWithEth(0, false, { value: parseUnits("1") })
+      ).to.be.revertedWith("no tickets available");
     });
   });
 });
