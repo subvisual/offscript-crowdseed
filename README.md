@@ -1,6 +1,7 @@
 # Offscript Crowdseed
 
 [etherscan-nft]: https://etherscan.io/address/0x5738379364Fab26c7e044c02deD4ceef93333D84
+[etherscan-sale]: https://etherscan.io/address/0xC56923CFaB78C785fA49B182dF4a9eeB54663113
 [crowdseed]: https://nft.web3creatives.com
 [offscript]: https://web3creatives.com
 [webflow]: https://webflow.com
