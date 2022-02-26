@@ -4,11 +4,11 @@ const func: DeployFunction = async function (hre) {
   const { deployer } = await hre.getNamedAccounts();
   const { read, execute } = hre.deployments;
 
-  const owner = await read("OffscriptNFT", "owner");
+  const owner = await read("OffscriptPayment", "owner");
 
   if (owner == deployer) {
     await execute(
-      "OffscriptNFT",
+      "OffscriptPayment",
       { from: deployer, log: true },
       "transferOwnership",
       "0x2a84EeE5eCa5c5DD031E53bE179E429f49E87d39"
@@ -16,8 +16,8 @@ const func: DeployFunction = async function (hre) {
   }
 };
 
-func.id = "transfer_nft_ownership";
-func.tags = ["nft"];
-func.dependencies = ["deploy_nft"];
+func.id = "transfer_payment_ownership";
+func.tags = ["payment"];
+func.dependencies = ["deploy_payment"];
 
 export default func;
