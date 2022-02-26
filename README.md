@@ -31,10 +31,10 @@ yarn install
 A [hardhat][hardhat] project containing the ERC721 contract and the ticket sale
 contract
 
-| Contract         | Mainnet Address                                             |
-| ---              | ---                                                         |
-| OffscriptNFT     | [0x5738379364Fab26c7e044c02deD4ceef93333D84][etherscan-nft] |
-| OffscriptPayment | [TODO][etherscan-sale]                                      |
+| Contract         | Mainnet Address                                              |
+| ---              | ---                                                          |
+| OffscriptNFT     | [0x5738379364Fab26c7e044c02deD4ceef93333D84][etherscan-nft]  |
+| OffscriptPayment | [0xC56923CFaB78C785fA49B182dF4a9eeB54663113][etherscan-sale] |
 
 ### Web
 
