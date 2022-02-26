@@ -1,4 +1,4 @@
-# Offscript
+# Offscript Crowdseed
 
 [etherscan-nft]: https://etherscan.io/address/0x5738379364Fab26c7e044c02deD4ceef93333D84
 [crowdseed]: https://nft.web3creatives.com
