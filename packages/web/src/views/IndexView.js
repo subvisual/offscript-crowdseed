@@ -190,8 +190,8 @@ class IndexView extends React.Component {
               <SectionActionsView.Controller />
               <SectionMintView.Controller />
               <SectionTicketView.Controller />
-              <SectionMintedView.Controller />
-              <SectionTicketedView.Controller />
+              <SectionMintSuccessView.Controller />
+              <SectionTicketSuccessView.Controller />
               <div className="section is--footer wf-section">
                 <div className="_1360_container is--20padding-tablet">
                   <div className="_200-spacing" />
