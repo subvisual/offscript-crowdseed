@@ -87,14 +87,14 @@ class SectionTicketView extends React.Component {
                   </label>
                   <div className="_28margin-left">
                     <div className="text--20">Arrival April 1st - {map(proxies['sock-price-1'], props => <span {...{...props, className: `price-regular ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>€800</React.Fragment>}</span>)}</div>
-                    <div className="text--20 _12">Inc. VAT @21%</div>
+                    <div className="text--20 _12">Inc. VAT @23%</div>
                     <div className="text--20 _16">Includes event, transportation, lodging, food, drinks. <br /><span className="bold">2 nights</span>, Check in April 1st Check out April 3rd</div>
                   </div><label className="radio-button-field w-radio">
                     <div className="w-form-formradioinput w-form-formradioinput--inputType-custom radio-button w-radio-input" />{map(proxies['sock-radio-2'], props => <input type="radio" name="Extended" id="Extended-Experience---950" value="Extended Experience - 950" data-name="Extended" style={{opacity: 0, position: 'absolute', zIndex: -1}} {...props}>{props.children}</input>)}<span className="text--20 _28 w-form-label" htmlFor="Extended-Experience---950">Extended Offscript experience</span>
                   </label>
                   <div className="_28margin-left _40">
                     <div className="text--20">Arrival March 31st - {map(proxies['sock-price-2'], props => <span {...props}>{props.children ? props.children : <React.Fragment>€950</React.Fragment>}</span>)}</div>
-                    <div className="text--20 _12">Inc. VAT @21%</div>
+                    <div className="text--20 _12">Inc. VAT @23%</div>
                     <div className="text--20 _16">Includes event, transportation, lodging, food, drinks. This ticket includes a limited seat early check and dinner in on March 31st. </div>
                   </div><label htmlFor="field" className="text--20">Crypto Payment</label>{map(proxies['sock-currency'], props => <select id="field" name="field" data-name="Field" required {...{...props, className: `select-field w-select ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
                     <option value>Select a currency</option>
