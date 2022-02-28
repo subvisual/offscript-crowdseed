@@ -73,18 +73,18 @@ class SectionWalletView extends React.Component {
           }
         ` }} />
         <span className="af-view">
-          <div className="section is--80padding wf-section">
-            <div className="_1077_container">
-              <div className="overflow_hidden">
-                <div className="heading--137 _24margin-bottom">Wallet Connected</div>
+          <div className="af-class-section af-class-is--80padding af-class-wf-section">
+            <div className="af-class-_1077_container">
+              <div className="af-class-overflow_hidden">
+                <div className="af-class-heading--137 af-class-_24margin-bottom">Wallet Connected</div>
               </div>
-              {map(proxies['sock-address'], props => <div {...{...props, className: `faq--question-title ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>WALLET ADDRESS</React.Fragment>}</div>)}
-              {map(proxies['sock-already-ticket'], props => <div {...{...props, className: `text--20 info ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>You already have a ticket.</React.Fragment>}</div>)}
-              <div className="w-layout-grid grid-2 _60margin-top">
-                <div id="w-node-e2e35535-a98f-e88a-d04f-a98790cb6379-6fc6f102" className="overflow_hidden">{map(proxies['sock-img'], props => <img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt {...{...props, className: `nft-image ${props.className || ''}`}}>{props.children}</img>)}</div>
+              {map(proxies['sock-address'], props => <div {...{...props, className: `af-class-faq--question-title ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>WALLET ADDRESS</React.Fragment>}</div>)}
+              {map(proxies['sock-already-ticket'], props => <div {...{...props, className: `af-class-text--20 af-class-info ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>You already have a ticket.</React.Fragment>}</div>)}
+              <div className="w-layout-grid af-class-grid-2 af-class-_60margin-top">
+                <div id="w-node-e2e35535-a98f-e88a-d04f-a98790cb6379-6fc6f102" className="af-class-overflow_hidden">{map(proxies['sock-img'], props => <img src="https://d3e54v103j8qbb.cloudfront.net/plugins/Basic/assets/placeholder.60f9b1840c.svg" loading="lazy" alt {...{...props, className: `af-class-nft-image ${props.className || ''}`}}>{props.children}</img>)}</div>
                 <div id="w-node-_17ceab8d-208d-78c7-d89d-d56af4a5e241-6fc6f102">
-                  {map(proxies['sock-nft-name'], props => <div {...{...props, className: `heading--56 ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>NFT&nbsp;name... </React.Fragment>}</div>)}
-                  {map(proxies['sock-discount'], props => <div {...{...props, className: `faq--question-title _16margin-top ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>Discount info</React.Fragment>}</div>)}
+                  {map(proxies['sock-nft-name'], props => <div {...{...props, className: `af-class-heading--56 ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>NFT&nbsp;name... </React.Fragment>}</div>)}
+                  {map(proxies['sock-discount'], props => <div {...{...props, className: `af-class-faq--question-title af-class-_16margin-top ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>Discount info</React.Fragment>}</div>)}
                 </div>
               </div>
             </div>

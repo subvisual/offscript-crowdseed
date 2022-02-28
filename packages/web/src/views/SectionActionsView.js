@@ -70,24 +70,24 @@ class SectionActionsView extends React.Component {
           }
         ` }} />
         <span className="af-view">
-          <div className="section is--80padding wf-section">
-            <div className="_1077_container">
-              <div className="grid-2 _3">
-                <div id="w-node-f47c5bc1-f7de-390b-acb6-4b2a5184bb43-6fc6f102" className="left">
-                  <div className="overflow_hidden">
-                    <div className="heading--137 _24margin-bottom">MINT<br />NFT</div>
+          <div className="af-class-section af-class-is--80padding af-class-wf-section">
+            <div className="af-class-_1077_container">
+              <div className="af-class-grid-2 af-class-_3">
+                <div id="w-node-f47c5bc1-f7de-390b-acb6-4b2a5184bb43-6fc6f102" className="af-class-left">
+                  <div className="af-class-overflow_hidden">
+                    <div className="af-class-heading--137 af-class-_24margin-bottom">MINT<br />NFT</div>
                   </div>
-                  <div className="text--20">
+                  <div className="af-class-text--20">
                     <a href="https://mirror.xyz/0x8C4F71B3cF6a76dE2CC239a6fA84E1a80e589598/Tya8b-rNzMWGQfOZZzpsV8BKnb8ZKbXIyZB9F8eVXgc" target="_blank">More info here</a><br />
                   </div>
-                  <div className="_60margin-top _20-tablet">
-                    <div className="overflow_hidden">
-                      <div className="getticket-background small">
-                        {map(proxies['sock-mint'], props => <a href="#" {...{...props, className: `getticket-btn-2 _100 w-inline-block ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
-                          <div className="overflow_hidden">
-                            <div className="hover-text-wrapper small animation-fadein">
-                              <div className="text_hover">MINT NFT</div>
-                              <div className="text_hover">connect wallet</div>
+                  <div className="af-class-_60margin-top af-class-_20-tablet">
+                    <div className="af-class-overflow_hidden">
+                      <div className="af-class-getticket-background af-class-small">
+                        {map(proxies['sock-mint'], props => <a href="#" {...{...props, className: `af-class-getticket-btn-2 af-class-_100 w-inline-block ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
+                          <div className="af-class-overflow_hidden">
+                            <div className="af-class-hover-text-wrapper af-class-small af-class-animation-fadein">
+                              <div className="af-class-text_hover">MINT NFT</div>
+                              <div className="af-class-text_hover">connect wallet</div>
                             </div>
                           </div>
                         </React.Fragment>}</a>)}
@@ -95,21 +95,21 @@ class SectionActionsView extends React.Component {
                     </div>
                   </div>
                 </div>
-                <div id="w-node-_29c4b12b-f731-a3db-f4f3-78a9dfa15342-6fc6f102" className="vertical-line" />
-                <div id="w-node-_2f6973b9-da25-590c-01d6-262cb193adf4-6fc6f102" className="right">
-                  <div className="overflow_hidden">
-                    <div className="heading--137 _24margin-bottom _40-top-landscape">BUY <br />TICKET</div>
-                    <div className="text--20">
+                <div id="w-node-_29c4b12b-f731-a3db-f4f3-78a9dfa15342-6fc6f102" className="af-class-vertical-line" />
+                <div id="w-node-_2f6973b9-da25-590c-01d6-262cb193adf4-6fc6f102" className="af-class-right">
+                  <div className="af-class-overflow_hidden">
+                    <div className="af-class-heading--137 af-class-_24margin-bottom af-class-_40-top-landscape">BUY <br />TICKET</div>
+                    <div className="af-class-text--20">
                       <a href="https://mirror.xyz/0x8C4F71B3cF6a76dE2CC239a6fA84E1a80e589598/Tya8b-rNzMWGQfOZZzpsV8BKnb8ZKbXIyZB9F8eVXgc" target="_blank">More info here</a><br />
                     </div>
-                    <div className="_60margin-top _20-tablet">
-                      <div className="overflow_hidden">
-                        <div className="getticket-background small">
-                          {map(proxies['sock-buy'], props => <a href="#" {...{...props, className: `getticket-btn-2 _100 w-inline-block ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
-                            <div className="overflow_hidden">
-                              <div className="hover-text-wrapper small animation-fadein">
-                                <div className="text_hover">BUY TICKET</div>
-                                <div className="text_hover">connect wallet</div>
+                    <div className="af-class-_60margin-top af-class-_20-tablet">
+                      <div className="af-class-overflow_hidden">
+                        <div className="af-class-getticket-background af-class-small">
+                          {map(proxies['sock-buy'], props => <a href="#" {...{...props, className: `af-class-getticket-btn-2 af-class-_100 w-inline-block ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
+                            <div className="af-class-overflow_hidden">
+                              <div className="af-class-hover-text-wrapper af-class-small af-class-animation-fadein">
+                                <div className="af-class-text_hover">BUY TICKET</div>
+                                <div className="af-class-text_hover">connect wallet</div>
                               </div>
                             </div>
                           </React.Fragment>}</a>)}
