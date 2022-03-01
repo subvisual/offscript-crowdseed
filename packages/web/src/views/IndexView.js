@@ -203,7 +203,7 @@ class IndexView extends React.Component {
                       <img
                         src="images/OffScript-Logo-2.png"
                         loading="lazy"
-                        sizes="100vw"
+                        sizes="(max-width: 479px) 89vw, (max-width: 767px) 91vw, (max-width: 991px) 95vw, (max-width: 1919px) 94vw, (max-width: 3814px) 71vw, 2708px"
                         srcSet="images/OffScript-Logo-2-p-500.png 500w, images/OffScript-Logo-2-p-800.png 800w, images/OffScript-Logo-2-p-1080.png 1080w, images/OffScript-Logo-2.png 2708w"
                         alt="Offscript logo"
                         className="footer_logo animation-fadein"

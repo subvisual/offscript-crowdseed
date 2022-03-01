@@ -51,10 +51,7 @@ class SectionTicketView extends React.Component {
   render() {
     const proxies = SectionTicketView.Controller !== SectionTicketView ? transformProxies(this.props.children) : {
       'sock-email': [],
-      'sock-radio-1': [],
       'sock-price-1': [],
-      'sock-radio-2': [],
-      'sock-price-2': [],
       'sock-currency': [],
       'sock-buy-ticket': [],
       'sock-ticket-notice': [],
@@ -82,20 +79,11 @@ class SectionTicketView extends React.Component {
                 <div className="heading--137 _40margin-bottom-copy">CHECKOUT</div>
               </div>
               <div className="w-form">
-                <form id="email-form" name="email-form" data-name="Email Form" method="get" className="form-2"><label htmlFor="Email-2" className="text--20">Email Address</label>{map(proxies['sock-email'], props => <input type="email" maxLength={256} name="Email" data-name="Email" placeholder="Your ticket is sent to this address" id="Email-2" required {...{...props, className: `text-field w-input ${props.className || ''}`}}>{props.children}</input>)}<label className="radio-button-field w-radio">
-                    <div className="w-form-formradioinput w-form-formradioinput--inputType-custom radio-button w-radio-input" />{map(proxies['sock-radio-1'], props => <input type="radio" name="Offscript" id="Offscript---800" value="Offscript - 800" data-name="Offscript" style={{opacity: 0, position: 'absolute', zIndex: -1}} {...props}>{props.children}</input>)}<span className="text--20 _28 w-form-label" htmlFor="Offscript---800"> Offscript experience</span>
-                  </label>
-                  <div className="_28margin-left">
+                <form id="email-form" name="email-form" data-name="Email Form" method="get" className="form-2"><label htmlFor="Email-2" className="text--20">Email Address</label>{map(proxies['sock-email'], props => <input type="email" maxLength={256} name="Email" data-name="Email" placeholder="Your ticket is sent to this address" id="Email-2" required {...{...props, className: `text-field w-input ${props.className || ''}`}}>{props.children}</input>)}<label htmlFor="Email-3" className="text--20 _28 regular">Offscript experience</label>
+                  <div className="_28margin-left no-margin">
                     <div className="text--20">Arrival April 1st - {map(proxies['sock-price-1'], props => <span {...{...props, className: `price-regular ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>$800</React.Fragment>}</span>)}</div>
                     <div className="text--20 _12">Inc. VAT @23%</div>
                     <div className="text--20 _16">Includes event, transportation, lodging, food, drinks. <br /><span className="bold">2 nights</span>, Check in April 1st Check out April 3rd</div>
-                  </div><label className="radio-button-field w-radio">
-                    <div className="w-form-formradioinput w-form-formradioinput--inputType-custom radio-button w-radio-input" />{map(proxies['sock-radio-2'], props => <input type="radio" name="Extended" id="Extended-Experience---950" value="Extended Experience - 950" data-name="Extended" style={{opacity: 0, position: 'absolute', zIndex: -1}} {...props}>{props.children}</input>)}<span className="text--20 _28 w-form-label" htmlFor="Extended-Experience---950">Extended Offscript experience</span>
-                  </label>
-                  <div className="_28margin-left _40">
-                    <div className="text--20">Arrival March 31st - {map(proxies['sock-price-2'], props => <span {...props}>{props.children ? props.children : <React.Fragment>$950</React.Fragment>}</span>)}</div>
-                    <div className="text--20 _12">Inc. VAT @23%</div>
-                    <div className="text--20 _16">Includes event, transportation, lodging, food, drinks. This ticket includes a limited seat early check and dinner in on March 31st. </div>
                   </div><label htmlFor="field" className="text--20">Crypto Payment</label>{map(proxies['sock-currency'], props => <select id="field" name="field" data-name="Field" required {...{...props, className: `select-field w-select ${props.className || ''}`}}>{props.children ? props.children : <React.Fragment>
                     <option value>Select a currency</option>
                     <option value="ETH">ETH</option>
