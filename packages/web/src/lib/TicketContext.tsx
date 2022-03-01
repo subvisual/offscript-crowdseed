@@ -20,6 +20,7 @@ interface TicketContext {
   ticketMined: boolean;
   email?: string;
   currency?: string;
+  supply: number;
   onTicketClick: (
     email?: string,
     currency?: string,
@@ -31,6 +32,7 @@ const TicketContext = createContext<TicketContext>({
   approvalMined: false,
   ticketMined: false,
   hasTicket: false,
+  supply: 0,
   onTicketClick: () => {
     /* do nothing */
   },
@@ -84,6 +86,7 @@ export const TicketProvider: FC = ({ children }) => {
   const [ticketTx, setTicketTx] = useState<any>();
   const [ticketMined, setTicketMined] = useState<boolean>(false);
   const [hasTicket, setHasTicket] = useState(false);
+  const [supply, setSupply] = useState(0);
 
   // find existing ticket
   useEffect(() => {
@@ -99,6 +102,18 @@ export const TicketProvider: FC = ({ children }) => {
       }
     })();
   }, [ticketContract, signer]);
+
+  // find supply
+  useEffect(() => {
+    (async function () {
+      if (!ticketContract || !signer) {
+        return;
+      }
+
+      const supply = await ticketContract.remainingSupply();
+      setSupply(supply);
+    })();
+  });
 
   // sign data
   const onTicketClick = useCallback(
@@ -261,6 +276,7 @@ export const TicketProvider: FC = ({ children }) => {
         approvalMined,
         ticketMined,
         hasTicket,
+        supply,
       }}
     >
       {children}

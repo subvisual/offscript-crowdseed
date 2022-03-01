@@ -28,11 +28,12 @@ const ExtendedPrice = 950;
 const SectionTicketController: FC = () => {
   const { account } = useWeb3React<Web3Provider>();
   const { bestAsset } = useMint();
-  const { onTicketClick, ticketTx, approvalTx, approvalMined } = useTicket();
+  const { supply, onTicketClick, ticketTx, approvalTx, approvalMined } =
+    useTicket();
 
   const [email, setEmail] = useState<string | undefined>();
   const [currency, setCurrency] = useState<string | undefined>();
-  const [ticketType, setTicketType] = useState<string | undefined>();
+  const [ticketType, setTicketType] = useState<string | undefined>("regular");
 
   const [regularPrice, setRegularPrice] = useState(RegularPrice);
   const [extendedPrice, setExtendedPrice] = useState(ExtendedPrice);
@@ -42,6 +43,10 @@ const SectionTicketController: FC = () => {
   const onSubmit = useCallback(
     (e: any) => {
       e.preventDefault();
+
+      if (supply == 0) {
+        return;
+      }
 
       if (
         !validateEmail(email) ||
@@ -77,7 +82,9 @@ const SectionTicketController: FC = () => {
       return;
     }
 
-    if (approvalMined && !ticketTx) {
+    if (supply == 0) {
+      setNotice("Crypto tickets not available at the moment.");
+    } else if (approvalMined && !ticketTx) {
       setNotice("Just one more step");
     } else if (approvalTx && !approvalMined) {
       setNotice("Waiting for approval tx to be mined...");
