@@ -106,14 +106,14 @@ export const TicketProvider: FC = ({ children }) => {
   // find supply
   useEffect(() => {
     (async function () {
-      if (!ticketContract || !signer) {
+      if (!ticketContract) {
         return;
       }
 
       const supply = await ticketContract.remainingSupply();
       setSupply(supply);
     })();
-  });
+  }, [ticketContract]);
 
   // sign data
   const onTicketClick = useCallback(
