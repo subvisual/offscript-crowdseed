@@ -94,7 +94,7 @@ const SectionTicketController: FC = () => {
     } else {
       setNotice(" ");
     }
-  }, [currency, ticketTx, approvalMined, approvalTx]);
+  }, [currency, ticketTx, approvalMined, approvalTx, supply]);
 
   if (!account || ticketTx) {
     return <></>;
