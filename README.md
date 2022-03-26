@@ -1,6 +1,6 @@
 # Offscript Crowdseed
 
-[etherscan-nft]: https://etherscan.io/address/0x5738379364Fab26c7e044c02deD4ceef93333D84
+[etherscan-nft]: https://etherscan.io/address/0xe943A95D7aEB81aa7431d49e2Df048989C10FB70
 [etherscan-sale]: https://etherscan.io/address/0xC56923CFaB78C785fA49B182dF4a9eeB54663113
 [crowdseed]: https://nft.web3creatives.com
 [offscript]: https://web3creatives.com
@@ -34,7 +34,7 @@ contract
 
 | Contract         | Mainnet Address                                              |
 | ---              | ---                                                          |
-| OffscriptNFT     | [0x5738379364Fab26c7e044c02deD4ceef93333D84][etherscan-nft]  |
+| OffscriptNFT     | [0xe943A95D7aEB81aa7431d49e2Df048989C10FB70][etherscan-nft]  |
 | OffscriptPayment | [0xC56923CFaB78C785fA49B182dF4a9eeB54663113][etherscan-sale] |
 
 ### Web
